@@ -1,51 +1,41 @@
 import { useState, useEffect } from 'react'
-import { Button } from "src/components/ui/button"
-import { Input } from "src/components/ui/input"
-import { Label } from "src/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "src/components/ui/select"
-import { Slider } from "src/components/ui/slider"
-import { Card, CardContent, CardHeader, CardTitle } from "src/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-
-type TileType = 'Empty' | 'Wall' | 'Start' | 'End' | 'Item' | 'Enemy'
+import { Edit, Plus, Trash2 } from 'lucide-react'
 
 interface Tile {
-  type: TileType
-}
-
-const tileColors: Record<TileType, string> = {
-  Empty: 'bg-gray-200',
-  Wall: 'bg-gray-800',
-  Start: 'bg-green-500',
-  End: 'bg-red-500',
-  Item: 'bg-yellow-500',
-  Enemy: 'bg-purple-500',
+  type: string
+  color: string
+  height: number
 }
 
 export default function WorldBuilder() {
-  const [mapSize, setMapSize] = useState({ width: 10, height: 10 })
-  const [selectedTile, setSelectedTile] = useState<TileType>('Empty')
+  const [mapSize, setMapSize] = useState({ columns: 10, rows: 10 })
+  const [selectedTile, setSelectedTile] = useState<string>('Empty')
   const [map, setMap] = useState<Tile[][]>(
-    Array(mapSize.height).fill(null).map(() => Array(mapSize.width).fill({ type: 'Empty' }))
+    Array(mapSize.rows).fill(null).map(() => Array(mapSize.columns).fill({ type: 'Empty', color: '#E5E7EB', height: 0 }))
   )
   const [isDragging, setIsDragging] = useState(false)
-
-  // Add useEffect to handle global mouse up event
-  useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      setIsDragging(false)
-    }
-
-    window.addEventListener('mouseup', handleGlobalMouseUp)
-
-    return () => {
-      window.removeEventListener('mouseup', handleGlobalMouseUp)
-    }
-  }, [])
+  const [tiles, setTiles] = useState<Tile[]>([
+    { type: 'Empty', color: '#E5E7EB', height: 0 },
+    { type: 'Wall', color: '#1F2937', height: 1 },
+    { type: 'Start', color: '#10B981', height: 0 },
+    { type: 'End', color: '#EF4444', height: 0 },
+    { type: 'Item', color: '#F59E0B', height: 0 },
+    { type: 'Enemy', color: '#8B5CF6', height: 0 },
+  ])
 
   const handleTileClick = (row: number, col: number) => {
     const newMap = [...map]
-    newMap[row][col] = { type: selectedTile }
+    const selectedTileData = tiles.find(tile => tile.type === selectedTile)
+    if (selectedTileData) {
+      newMap[row][col] = { ...selectedTileData }
+    }
     setMap(newMap)
   }
 
@@ -58,6 +48,10 @@ export default function WorldBuilder() {
     if (isDragging) {
       handleTileClick(row, col)
     }
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
   }
 
   const handleSave = () => {
@@ -78,18 +72,74 @@ export default function WorldBuilder() {
         const content = e.target?.result as string
         const loadedMap = JSON.parse(content)
         setMap(loadedMap)
-        setMapSize({ width: loadedMap[0].length, height: loadedMap.length })
+        setMapSize({ columns: loadedMap[0].length, rows: loadedMap.length })
       }
       reader.readAsText(file)
     }
   }
 
+  const handleAddTile = () => {
+    const newTile: Tile = { type: `New Tile ${tiles.length + 1}`, color: '#000000', height: 0 }
+    setTiles([...tiles, newTile])
+  }
+
+  const handleEditTile = (index: number, updatedTile: Tile) => {
+    const newTiles = [...tiles]
+    newTiles[index] = updatedTile
+    setTiles(newTiles)
+  }
+
+  const handleDeleteTile = (index: number) => {
+    const newTiles = tiles.filter((_, i) => i !== index);
+    setTiles(newTiles);
+    
+    // If the deleted tile was selected, reset the selection
+    if (selectedTile === tiles[index].type) {
+      setSelectedTile('Empty');
+    }
+    
+    // Update the map to replace deleted tile with 'Empty'
+    setMap(prevMap => prevMap.map(row => 
+      row.map(tile => tile.type === tiles[index].type ? tiles[0] : tile)
+    ));
+  }
+
   const tileStats = map.flat().reduce((acc, tile) => {
     acc[tile.type] = (acc[tile.type] || 0) + 1
     return acc
-  }, {} as Record<TileType, number>)
+  }, {} as Record<string, number>)
 
   const chartData = Object.entries(tileStats).map(([type, count]) => ({ type, count }))
+
+  const handleMapSizeChange = (dimension: 'columns' | 'rows', value: number) => {
+    setMapSize(prev => {
+      const newSize = { ...prev, [dimension]: value };
+      setMap(prevMap => {
+        const newMap = Array(newSize.rows).fill(null).map((_, rowIndex) =>
+          Array(newSize.columns).fill(null).map((_, colIndex) => {
+            if (rowIndex < prevMap.length && colIndex < prevMap[0].length) {
+              return prevMap[rowIndex][colIndex];
+            }
+            return { type: 'Empty', color: '#E5E7EB', height: 0 };
+          })
+        );
+        return newMap;
+      });
+      return newSize;
+    });
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -104,16 +154,18 @@ export default function WorldBuilder() {
               <div
                 className="grid gap-1"
                 style={{
-                  gridTemplateColumns: `repeat(${mapSize.width}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${mapSize.columns}, minmax(0, 1fr))`,
                 }}
               >
                 {map.map((row, rowIndex) =>
                   row.map((tile, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-full pt-[100%] relative ${tileColors[tile.type]} border border-gray-300`}
+                      className={`w-full pt-[100%] relative border border-gray-300`}
+                      style={{ backgroundColor: tile.color, boxShadow: `inset 0 -${tile.height * 2}px 0 0 rgba(0,0,0,0.1)` }}
                       onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
                       onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                      onMouseUp={handleMouseUp}
                     ></div>
                   ))
                 )}
@@ -128,41 +180,107 @@ export default function WorldBuilder() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="tile-select">Select Tile</Label>
-                  <Select value={selectedTile} onValueChange={(value: TileType) => setSelectedTile(value)}>
-                    <SelectTrigger id="tile-select">
-                      <SelectValue placeholder="Select a tile" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.keys(tileColors).map((tileType) => (
-                        <SelectItem key={tileType} value={tileType}>
-                          {tileType}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-3 gap-2">
+                  {tiles.map((tile, index) => (
+                    <div key={tile.type} className="relative group">
+                      <button
+                        className={`w-full h-12 rounded ${selectedTile === tile.type ? 'ring-2 ring-blue-500' : ''}`}
+                        style={{ backgroundColor: tile.color }}
+                        onClick={() => setSelectedTile(tile.type)}
+                      >
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white text-shadow">
+                          {tile.type}
+                        </span>
+                      </button>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            size="icon" 
+                            variant="outline" 
+                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <h3 className="font-bold">Edit Tile</h3>
+                              {index > 0 && (
+                                <Button
+                                  size="icon"
+                                  variant="destructive"
+                                  onClick={() => handleDeleteTile(index)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`tile-type-${index}`}>Type</Label>
+                              <Input
+                                id={`tile-type-${index}`}
+                                value={tile.type}
+                                onChange={(e) => handleEditTile(index, { ...tile, type: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`tile-color-${index}`}>Color</Label>
+                              <div className="flex space-x-2">
+                                <Input
+                                  id={`tile-color-${index}`}
+                                  type="color"
+                                  value={tile.color}
+                                  onChange={(e) => handleEditTile(index, { ...tile, color: e.target.value })}
+                                  className="w-12 h-8 p-0"
+                                />
+                                <Input
+                                  value={tile.color}
+                                  onChange={(e) => handleEditTile(index, { ...tile, color: e.target.value })}
+                                  className="flex-grow"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`tile-height-${index}`}>Height</Label>
+                              <Slider
+                                id={`tile-height-${index}`}
+                                min={0}
+                                max={5}
+                                step={1}
+                                value={[tile.height]}
+                                onValueChange={(value) => handleEditTile(index, { ...tile, height: value[0] })}
+                              />
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  ))}
+                  <Button onClick={handleAddTile} className="h-12">
+                    <Plus className="h-6 w-6" />
+                  </Button>
                 </div>
                 <div>
-                  <Label htmlFor="map-width">Map Width</Label>
+                  <Label htmlFor="map-columns">Map Columns</Label>
                   <Slider
-                    id="map-width"
+                    id="map-columns"
                     min={5}
                     max={20}
                     step={1}
-                    value={[mapSize.width]}
-                    onValueChange={(value) => setMapSize((prev) => ({ ...prev, width: value[0] }))}
+                    value={[mapSize.columns]}
+                    onValueChange={(value) => handleMapSizeChange('columns', value[0])}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="map-height">Map Height</Label>
+                  <Label htmlFor="map-rows">Map Rows</Label>
                   <Slider
-                    id="map-height"
+                    id="map-rows"
                     min={5}
                     max={20}
                     step={1}
-                    value={[mapSize.height]}
-                    onValueChange={(value) => setMapSize((prev) => ({ ...prev, height: value[0] }))}
+                    value={[mapSize.rows]}
+                    onValueChange={(value) => handleMapSizeChange('rows', value[0])}
                   />
                 </div>
                 <div className="space-x-2">
