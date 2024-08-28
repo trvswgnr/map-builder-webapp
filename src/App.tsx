@@ -6,12 +6,13 @@ import { Slider } from "@/components/ui/slider"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Edit, Plus, Trash2 } from 'lucide-react'
+import { Edit, Plus, Trash2, Upload } from 'lucide-react'
 
 interface Tile {
   type: string
   color: string
   height: number
+  texture?: string
 }
 
 export default function WorldBuilder() {
@@ -87,6 +88,11 @@ export default function WorldBuilder() {
     const newTiles = [...tiles]
     newTiles[index] = updatedTile
     setTiles(newTiles)
+
+    // Update the map to reflect the changes in tile properties
+    setMap(prevMap => prevMap.map(row =>
+      row.map(tile => tile.type === updatedTile.type ? { ...tile, ...updatedTile } : tile)
+    ))
   }
 
   const handleDeleteTile = (index: number) => {
@@ -102,6 +108,18 @@ export default function WorldBuilder() {
     setMap(prevMap => prevMap.map(row => 
       row.map(tile => tile.type === tiles[index].type ? tiles[0] : tile)
     ));
+  }
+
+  const handleTextureUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const texture = e.target?.result as string
+        handleEditTile(index, { ...tiles[index], texture })
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   const tileStats = map.flat().reduce((acc, tile) => {
@@ -162,7 +180,13 @@ export default function WorldBuilder() {
                     <div
                       key={`${rowIndex}-${colIndex}`}
                       className={`w-full pt-[100%] relative border border-gray-300`}
-                      style={{ backgroundColor: tile.color, boxShadow: `inset 0 -${tile.height * 2}px 0 0 rgba(0,0,0,0.1)` }}
+                      style={{
+                        backgroundColor: tile.color,
+                        backgroundImage: tile.texture ? `url(${tile.texture})` : 'none',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        boxShadow: `inset 0 -${tile.height * 2}px 0 0 rgba(0,0,0,0.1)`
+                      }}
                       onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
                       onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
                       onMouseUp={handleMouseUp}
@@ -185,7 +209,12 @@ export default function WorldBuilder() {
                     <div key={tile.type} className="relative group">
                       <button
                         className={`w-full h-12 rounded ${selectedTile === tile.type ? 'ring-2 ring-blue-500' : ''}`}
-                        style={{ backgroundColor: tile.color }}
+                        style={{
+                          backgroundColor: tile.color,
+                          backgroundImage: tile.texture ? `url(${tile.texture})` : 'none',
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
                         onClick={() => setSelectedTile(tile.type)}
                       >
                         <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white text-shadow">
@@ -251,6 +280,32 @@ export default function WorldBuilder() {
                                 value={[tile.height]}
                                 onValueChange={(value) => handleEditTile(index, { ...tile, height: value[0] })}
                               />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`tile-texture-${index}`}>Texture</Label>
+                              <div className="flex items-center space-x-2">
+                                <Button asChild variant="outline">
+                                  <label htmlFor={`tile-texture-${index}`} className="cursor-pointer">
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload Texture
+                                    <input
+                                      id={`tile-texture-${index}`}
+                                      type="file"
+                                      className="hidden"
+                                      accept="image/*"
+                                      onChange={(e) => handleTextureUpload(index, e)}
+                                    />
+                                  </label>
+                                </Button>
+                                {tile.texture && (
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleEditTile(index, { ...tile, texture: undefined })}
+                                  >
+                                    Remove Texture
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </PopoverContent>
