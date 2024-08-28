@@ -1,310 +1,215 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { AlertCircle, Save, Upload, Trash2, Grid } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from './components/ui/alert';
-import { Button } from './components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
-import { Input } from './components/ui/input';
-import { Label } from './components/ui/label';
+import { useState, useEffect } from 'react'
+import { Button } from "src/components/ui/button"
+import { Input } from "src/components/ui/input"
+import { Label } from "src/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "src/components/ui/select"
+import { Slider } from "src/components/ui/slider"
+import { Card, CardContent, CardHeader, CardTitle } from "src/components/ui/card"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+
+type TileType = 'Empty' | 'Wall' | 'Start' | 'End' | 'Item' | 'Enemy'
 
 interface Tile {
-  type: number;
-  x: number;
-  y: number;
+  type: TileType
 }
 
-interface MapData {
-  width: number;
-  height: number;
-  tiles: Tile[];
+const tileColors: Record<TileType, string> = {
+  Empty: 'bg-gray-200',
+  Wall: 'bg-gray-800',
+  Start: 'bg-green-500',
+  End: 'bg-red-500',
+  Item: 'bg-yellow-500',
+  Enemy: 'bg-purple-500',
 }
 
-const TILE_SIZE = 30;
-const TILE_TYPES = [
-  { id: 0, name: 'Empty', color: '#ffffff' },
-  { id: 1, name: 'Wall', color: '#000000' },
-  { id: 2, name: 'Start', color: '#00ff00' },
-  { id: 3, name: 'End', color: '#ff0000' },
-  { id: 4, name: 'Item', color: '#ffff00' },
-  { id: 5, name: 'Enemy', color: '#ff00ff' },
-];
+export default function WorldBuilder() {
+  const [mapSize, setMapSize] = useState({ width: 10, height: 10 })
+  const [selectedTile, setSelectedTile] = useState<TileType>('Empty')
+  const [map, setMap] = useState<Tile[][]>(
+    Array(mapSize.height).fill(null).map(() => Array(mapSize.width).fill({ type: 'Empty' }))
+  )
+  const [isDragging, setIsDragging] = useState(false)
 
-const App: React.FC = () => {
-  const [mapData, setMapData] = useState<MapData>({
-    width: 20,
-    height: 15,
-    tiles: [],
-  });
-  const [selectedTileType, setSelectedTileType] = useState<number>(1);
-  const [showGrid, setShowGrid] = useState<boolean>(true);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  const [stats, setStats] = useState<{ name: string; value: number }[]>([]);
-  const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const svgRef = useRef<SVGSVGElement>(null);
-
+  // Add useEffect to handle global mouse up event
   useEffect(() => {
-    initializeMap();
-  }, []);
-
-  useEffect(() => {
-    updateStats();
-  }, [mapData]);
-
-  const initializeMap = () => {
-    const newTiles: Tile[] = [];
-    for (let y = 0; y < mapData.height; y++) {
-      for (let x = 0; x < mapData.width; x++) {
-        newTiles.push({ type: 0, x, y });
-      }
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false)
     }
-    setMapData({ ...mapData, tiles: newTiles });
-  };
 
-  const updateStats = () => {
-    const newStats = TILE_TYPES.map((tileType) => ({
-      name: tileType.name,
-      value: mapData.tiles.filter((tile) => tile.type === tileType.id).length,
-    }));
-    setStats(newStats);
-  };
+    window.addEventListener('mouseup', handleGlobalMouseUp)
 
-  const handleTileChange = (x: number, y: number) => {
-    setMapData((prevMapData) => ({
-      ...prevMapData,
-      tiles: prevMapData.tiles.map((tile) =>
-        tile.x === x && tile.y === y ? { ...tile, type: selectedTileType } : tile
-      ),
-    }));
-  };
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp)
+    }
+  }, [])
 
-  const handleMouseDown = (event: React.MouseEvent<SVGSVGElement>) => {
-    setIsDrawing(true);
-    const { x, y } = getTileCoordinates(event);
-    handleTileChange(x, y);
-  };
+  const handleTileClick = (row: number, col: number) => {
+    const newMap = [...map]
+    newMap[row][col] = { type: selectedTile }
+    setMap(newMap)
+  }
 
-  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
-    if (!isDrawing) return;
-    const { x, y } = getTileCoordinates(event);
-    handleTileChange(x, y);
-  };
+  const handleMouseDown = (row: number, col: number) => {
+    setIsDragging(true)
+    handleTileClick(row, col)
+  }
 
-  const handleMouseUp = () => {
-    setIsDrawing(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDrawing(false);
-  };
-
-  const getTileCoordinates = (event: React.MouseEvent<SVGSVGElement>): { x: number; y: number } => {
-    const svg = svgRef.current;
-    if (!svg) return { x: -1, y: -1 };
-
-    const rect = svg.getBoundingClientRect();
-    const x = Math.floor((event.clientX - rect.left) / TILE_SIZE);
-    const y = Math.floor((event.clientY - rect.top) / TILE_SIZE);
-    return { x, y };
-  };
+  const handleMouseEnter = (row: number, col: number) => {
+    if (isDragging) {
+      handleTileClick(row, col)
+    }
+  }
 
   const handleSave = () => {
-    const jsonData = JSON.stringify(mapData, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'map_data.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    setAlertMessage('Map saved successfully!');
-  };
+    const jsonMap = JSON.stringify(map)
+    const blob = new Blob([jsonMap], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'world-map.json'
+    a.click()
+  }
 
   const handleLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (e) => {
-        try {
-          const loadedData = JSON.parse(e.target?.result as string) as MapData;
-          setMapData(loadedData);
-          setAlertMessage('Map loaded successfully!');
-        } catch (error) {
-          setAlertMessage('Error loading map: Invalid JSON format');
-        }
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const handleClear = () => {
-    initializeMap();
-    setAlertMessage('Map cleared!');
-  };
-
-  const handleResize = (newWidth: number, newHeight: number) => {
-    const newTiles: Tile[] = [];
-    for (let y = 0; y < newHeight; y++) {
-      for (let x = 0; x < newWidth; x++) {
-        const existingTile = mapData.tiles.find((tile) => tile.x === x && tile.y === y);
-        newTiles.push(existingTile || { type: 0, x, y });
+        const content = e.target?.result as string
+        const loadedMap = JSON.parse(content)
+        setMap(loadedMap)
+        setMapSize({ width: loadedMap[0].length, height: loadedMap.length })
       }
+      reader.readAsText(file)
     }
-    setMapData({ width: newWidth, height: newHeight, tiles: newTiles });
-  };
+  }
 
-  const renderTile = useCallback(
-    (tile: Tile) => {
-      const tileType = TILE_TYPES.find((t) => t.id === tile.type);
-      return (
-        <rect
-          key={`${tile.x}-${tile.y}`}
-          x={tile.x * TILE_SIZE}
-          y={tile.y * TILE_SIZE}
-          width={TILE_SIZE}
-          height={TILE_SIZE}
-          fill={tileType?.color}
-          stroke={showGrid ? '#ccc' : 'none'}
-          strokeWidth={1}
-        />
-      );
-    },
-    [showGrid]
-  );
+  const tileStats = map.flat().reduce((acc, tile) => {
+    acc[tile.type] = (acc[tile.type] || 0) + 1
+    return acc
+  }, {} as Record<TileType, number>)
+
+  const chartData = Object.entries(tileStats).map(([type, count]) => ({ type, count }))
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">Map Builder</h1>
-      <div className="flex mb-4 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Tile Types</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {TILE_TYPES.map((tileType) => (
-                <div key={tileType.id} className="flex flex-col items-center">
-                  <Button
-                    size="sm"
-                    variant={selectedTileType === tileType.id ? "default" : "outline"}
-                    onClick={() => setSelectedTileType(tileType.id)}
-                    className={`w-24`}
-                  >
-                    {tileType.name}
+      <h1 className="text-3xl font-bold mb-4">World Builder</h1>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Map Editor</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="grid gap-1"
+                style={{
+                  gridTemplateColumns: `repeat(${mapSize.width}, minmax(0, 1fr))`,
+                }}
+              >
+                {map.map((row, rowIndex) =>
+                  row.map((tile, colIndex) => (
+                    <div
+                      key={`${rowIndex}-${colIndex}`}
+                      className={`w-full pt-[100%] relative ${tileColors[tile.type]} border border-gray-300`}
+                      onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
+                      onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+                    ></div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <div>
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Toolbar</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="tile-select">Select Tile</Label>
+                  <Select value={selectedTile} onValueChange={(value: TileType) => setSelectedTile(value)}>
+                    <SelectTrigger id="tile-select">
+                      <SelectValue placeholder="Select a tile" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.keys(tileColors).map((tileType) => (
+                        <SelectItem key={tileType} value={tileType}>
+                          {tileType}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="map-width">Map Width</Label>
+                  <Slider
+                    id="map-width"
+                    min={5}
+                    max={20}
+                    step={1}
+                    value={[mapSize.width]}
+                    onValueChange={(value) => setMapSize((prev) => ({ ...prev, width: value[0] }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="map-height">Map Height</Label>
+                  <Slider
+                    id="map-height"
+                    min={5}
+                    max={20}
+                    step={1}
+                    value={[mapSize.height]}
+                    onValueChange={(value) => setMapSize((prev) => ({ ...prev, height: value[0] }))}
+                  />
+                </div>
+                <div className="space-x-2">
+                  <Button onClick={handleSave}>Save Map</Button>
+                  <Button asChild>
+                    <label>
+                      Load Map
+                      <Input type="file" className="hidden" onChange={handleLoad} accept=".json" />
+                    </label>
                   </Button>
-                  <div
-                    className="w-24 h-2 mt-1"
-                    style={{ backgroundColor: tileType.color }}
-                  />
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Tools</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Button onClick={handleSave}>
-                <Save className="mr-1" size={16} /> Save
-              </Button>
-              <Button asChild>
-                <label>
-                  <Upload className="mr-1" size={16} /> Load
-                  <input type="file" className="hidden" onChange={handleLoad} accept=".json" />
-                </label>
-              </Button>
-              <Button variant="destructive" onClick={handleClear}>
-                <Trash2 className="mr-1" size={16} /> Clear
-              </Button>
-
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Grid</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="height">Rows:</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    value={mapData.height}
-                    onChange={(e) => handleResize(mapData.width, parseInt(e.target.value))}
-                    className="w-20"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="width">Columns:</Label>
-                  <Input
-                    id="width"
-                    type="number"
-                    value={mapData.width}
-                    onChange={(e) => handleResize(parseInt(e.target.value), mapData.height)}
-                    className="w-20"
-                  />
                 </div>
               </div>
-              <div>
-                <Button variant="outline" onClick={() => setShowGrid(!showGrid)}>
-                  <Grid className="mr-1" size={16} /> {showGrid ? 'Hide Grid' : 'Show Grid'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {alertMessage && (
-        <Alert className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Info</AlertTitle>
-          <AlertDescription>{alertMessage}</AlertDescription>
-        </Alert>
-      )}
-      <div className="flex">
-        <Card className="mr-4">
-          <CardHeader>
-            <CardTitle>Map Editor</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <svg
-              ref={svgRef}
-              width={mapData.width * TILE_SIZE}
-              height={mapData.height * TILE_SIZE}
-              className="border"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-            >
-              {mapData.tiles.map(renderTile)}
-            </svg>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LineChart width={400} height={300} data={stats}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="value" stroke="#8884d8" />
-            </LineChart>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle>Statistics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul>
+                {Object.entries(tileStats).map(([type, count]) => (
+                  <li key={type}>
+                    {type}: {count}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Tile Distribution</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="type" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="count" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
-  );
-};
-
-export default App;
+  )
+}
