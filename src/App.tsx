@@ -234,29 +234,42 @@ export default function WorldBuilder() {
                   </Button>
                 )}
               </div>
-              <div
-                className="grid gap-1"
-                style={{
-                  gridTemplateColumns: `repeat(${mapSize.columns}, minmax(0, 1fr))`,
-                }}
-              >
-                {layers[currentLayer].tiles.map((row, rowIndex) =>
-                  row.map((tile, colIndex) => (
+              <div className="relative">
+                {layers.map((layer, layerIndex) => (
+                  <div
+                    key={layerIndex}
+                    className="absolute top-0 left-0 w-full h-full"
+                    style={{
+                      zIndex: layerIndex === currentLayer ? layers.length : layerIndex,
+                      opacity: layerIndex === currentLayer ? (layerIndex === 0 ? 1 : 0.8) : 1,
+                    }}
+                  >
                     <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className="w-full pt-[100%] relative border border-gray-300"
+                      className="grid gap-1"
                       style={{
-                        backgroundColor: tile.color,
-                        backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
+                        gridTemplateColumns: `repeat(${mapSize.columns}, minmax(0, 1fr))`,
                       }}
-                      onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
-                      onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
-                      onMouseUp={handleMouseUp}
-                    ></div>
-                  )),
-                )}
+                    >
+                      {layer.tiles.map((row, rowIndex) =>
+                        row.map((tile, colIndex) => (
+                          <div
+                            key={`${layerIndex}-${rowIndex}-${colIndex}`}
+                            className="w-full pt-[100%] relative border border-gray-300"
+                            style={{
+                              backgroundColor: tile.color,
+                              backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                            onMouseDown={() => layerIndex === currentLayer && handleMouseDown(rowIndex, colIndex)}
+                            onMouseEnter={() => layerIndex === currentLayer && handleMouseEnter(rowIndex, colIndex)}
+                            onMouseUp={handleMouseUp}
+                          ></div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -418,7 +431,7 @@ export default function WorldBuilder() {
                     id="map-rows"
                     min={5}
                     max={20}
-                    step={1}
+                                    step={1}
                     value={[mapSize.rows]}
                     onValueChange={(value) => handleMapSizeChange("rows", value[0])}
                   />
