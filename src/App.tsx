@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Edit, Plus, Trash2, Upload } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Tile {
   type: string;
@@ -38,6 +39,7 @@ export default function WorldBuilder() {
     { type: "Item", color: "#F59E0B" },
     { type: "Enemy", color: "#8B5CF6" },
   ]);
+  const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
 
   const handleTileClick = (row: number, col: number) => {
     const newLayers = [...layers];
@@ -184,12 +186,21 @@ export default function WorldBuilder() {
     setCurrentLayer(layers.length);
   };
 
-  const removeLayer = (index: number) => {
-    if (layers.length > 1) {
-      const newLayers = layers.filter((_, i) => i !== index);
+  const openDeleteLayerModal = (index: number) => {
+    setLayerToDelete(index);
+  };
+
+  const closeDeleteLayerModal = () => {
+    setLayerToDelete(null);
+  };
+
+  const confirmDeleteLayer = () => {
+    if (layerToDelete !== null && layers.length > 1) {
+      const newLayers = layers.filter((_, i) => i !== layerToDelete);
       setLayers(newLayers);
       setCurrentLayer(Math.min(currentLayer, newLayers.length - 1));
     }
+    closeDeleteLayerModal();
   };
 
   useEffect(() => {
@@ -216,23 +227,26 @@ export default function WorldBuilder() {
             <CardContent>
               <div className="mb-4 flex space-x-2">
                 {layers.map((_, index) => (
-                  <Button
-                    key={index}
-                    variant={currentLayer === index ? "default" : "outline"}
-                    onClick={() => setCurrentLayer(index)}
-                  >
-                    Layer {index + 1}
-                  </Button>
+                  <div key={index} className="relative group">
+                    <Button
+                      variant={currentLayer === index ? "default" : "outline"}
+                      onClick={() => setCurrentLayer(index)}
+                    >
+                      Layer {index + 1}
+                    </Button>
+                    {layers.length > 1 && (
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => openDeleteLayerModal(index)}
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    )}
+                  </div>
                 ))}
                 <Button onClick={addLayer}>Add Layer</Button>
-                {layers.length > 1 && (
-                  <Button
-                    onClick={() => removeLayer(currentLayer)}
-                    variant="destructive"
-                  >
-                    Remove Layer
-                  </Button>
-                )}
               </div>
               <div className="relative w-full aspect-square">
                 {layers.map((layer, layerIndex) => (
@@ -493,6 +507,21 @@ export default function WorldBuilder() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={layerToDelete !== null} onOpenChange={closeDeleteLayerModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Layer</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete Layer {layerToDelete !== null ? layerToDelete + 1 : ''}? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDeleteLayerModal}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDeleteLayer}>Delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
