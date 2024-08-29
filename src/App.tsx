@@ -1,171 +1,184 @@
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { Edit, Plus, Trash2, Upload } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Edit, Plus, Trash2, Upload } from "lucide-react";
 
 interface Tile {
-  type: string
-  color: string
-  texture?: string
+  type: string;
+  color: string;
+  texture?: string;
 }
 
 interface MapLayer {
-  tiles: Tile[][]
+  tiles: Tile[][];
 }
 
 export default function WorldBuilder() {
-  const [mapSize, setMapSize] = useState({ columns: 10, rows: 10 })
-  const [selectedTile, setSelectedTile] = useState<string>('Empty')
+  const [mapSize, setMapSize] = useState({ columns: 10, rows: 10 });
+  const [selectedTile, setSelectedTile] = useState<string>("Empty");
   const [layers, setLayers] = useState<MapLayer[]>([
     {
-      tiles: Array(mapSize.rows).fill(null).map(() => 
-        Array(mapSize.columns).fill({ type: 'Empty', color: '#E5E7EB' })
-      )
-    }
-  ])
-  const [currentLayer, setCurrentLayer] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
+      tiles: Array(mapSize.rows)
+        .fill(null)
+        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "#E5E7EB" })),
+    },
+  ]);
+  const [currentLayer, setCurrentLayer] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const [tiles, setTiles] = useState<Tile[]>([
-    { type: 'Empty', color: '#E5E7EB' },
-    { type: 'Wall', color: '#1F2937' },
-    { type: 'Start', color: '#10B981' },
-    { type: 'End', color: '#EF4444' },
-    { type: 'Item', color: '#F59E0B' },
-    { type: 'Enemy', color: '#8B5CF6' },
-  ])
+    { type: "Empty", color: "#E5E7EB" },
+    { type: "Wall", color: "#1F2937" },
+    { type: "Start", color: "#10B981" },
+    { type: "End", color: "#EF4444" },
+    { type: "Item", color: "#F59E0B" },
+    { type: "Enemy", color: "#8B5CF6" },
+  ]);
 
   const handleTileClick = (row: number, col: number) => {
-    const newLayers = [...layers]
-    const selectedTileData = tiles.find(tile => tile.type === selectedTile)
+    const newLayers = [...layers];
+    const selectedTileData = tiles.find((tile) => tile.type === selectedTile);
     if (selectedTileData) {
-      newLayers[currentLayer].tiles[row][col] = { ...selectedTileData }
+      newLayers[currentLayer].tiles[row][col] = { ...selectedTileData };
     }
-    setLayers(newLayers)
-  }
+    setLayers(newLayers);
+  };
 
   const handleMouseDown = (row: number, col: number) => {
-    setIsDragging(true)
-    handleTileClick(row, col)
-  }
+    setIsDragging(true);
+    handleTileClick(row, col);
+  };
 
   const handleMouseEnter = (row: number, col: number) => {
     if (isDragging) {
-      handleTileClick(row, col)
+      handleTileClick(row, col);
     }
-  }
+  };
 
   const handleMouseUp = () => {
-    setIsDragging(false)
-  }
+    setIsDragging(false);
+  };
 
   const handleSave = () => {
-    const jsonMap = JSON.stringify(layers)
-    const blob = new Blob([jsonMap], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'world-map.json'
-    a.click()
-  }
+    const jsonMap = JSON.stringify(layers);
+    const blob = new Blob([jsonMap], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "world-map.json";
+    a.click();
+  };
 
   const handleLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (e) => {
-        const content = e.target?.result as string
-        const loadedMap = JSON.parse(content)
-        setLayers(loadedMap)
-        setMapSize({ columns: loadedMap[0].tiles[0].length, rows: loadedMap[0].tiles.length })
-      }
-      reader.readAsText(file)
+        const content = e.target?.result as string;
+        const loadedMap = JSON.parse(content);
+        setLayers(loadedMap);
+        setMapSize({ columns: loadedMap[0].tiles[0].length, rows: loadedMap[0].tiles.length });
+      };
+      reader.readAsText(file);
     }
-  }
+  };
 
   const handleAddTile = () => {
-    const newTile: Tile = { type: `New Tile ${tiles.length + 1}`, color: '#000000' }
-    setTiles([...tiles, newTile])
-  }
+    const newTile: Tile = { type: `New Tile ${tiles.length + 1}`, color: "#000000" };
+    setTiles([...tiles, newTile]);
+  };
 
   const handleEditTile = (index: number, updatedTile: Tile) => {
-    const newTiles = [...tiles]
-    newTiles[index] = updatedTile
-    setTiles(newTiles)
+    const newTiles = [...tiles];
+    newTiles[index] = updatedTile;
+    setTiles(newTiles);
 
     // Update the map to reflect the changes in tile properties
-    setLayers(prevLayers => prevLayers.map(layer => {
-      const newTiles = layer.tiles.map(row =>
-        row.map(tile => tile.type === updatedTile.type ? { ...tile, ...updatedTile } : tile)
-      )
-      return { ...layer, tiles: newTiles }
-    }))
-  }
+    setLayers((prevLayers) =>
+      prevLayers.map((layer) => {
+        const newTiles = layer.tiles.map((row) =>
+          row.map((tile) => (tile.type === updatedTile.type ? { ...tile, ...updatedTile } : tile)),
+        );
+        return { ...layer, tiles: newTiles };
+      }),
+    );
+  };
 
   const handleDeleteTile = (index: number) => {
     const newTiles = tiles.filter((_, i) => i !== index);
     setTiles(newTiles);
-    
+
     // If the deleted tile was selected, reset the selection
     if (selectedTile === tiles[index].type) {
-      setSelectedTile('Empty');
+      setSelectedTile("Empty");
     }
-    
+
     // Update the map to replace deleted tile with 'Empty'
-    setLayers(prevLayers => prevLayers.map(layer => {
-      const newTiles = layer.tiles.map(row => 
-        row.map(tile => tile.type === tiles[index].type ? tiles[0] : tile)
-      )
-      return { ...layer, tiles: newTiles }
-    }))
-  }
-
-  const handleTextureUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const texture = e.target?.result as string
-        handleEditTile(index, { ...tiles[index], texture })
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
-  const tileStats = layers.flatMap(layer => layer.tiles).flat().reduce((acc, tile) => {
-    acc[tile.type] = (acc[tile.type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const chartData = Object.entries(tileStats).map(([type, count]) => ({ type, count }))
-
-  const handleMapSizeChange = (dimension: 'columns' | 'rows', value: number) => {
-    setMapSize(prev => {
-      const newSize = { ...prev, [dimension]: value };
-      setLayers(prevLayers => prevLayers.map(layer => {
-        const newTiles = Array(newSize.rows).fill(null).map((_, rowIndex) =>
-          Array(newSize.columns).fill(null).map((_, colIndex) => {
-            if (rowIndex < layer.tiles.length && colIndex < layer.tiles[0].length) {
-              return layer.tiles[rowIndex][colIndex];
-            }
-            return { type: 'Empty', color: '#E5E7EB' };
-          })
+    setLayers((prevLayers) =>
+      prevLayers.map((layer) => {
+        const newTiles = layer.tiles.map((row) =>
+          row.map((tile) => (tile.type === tiles[index].type ? tiles[0] : tile)),
         );
         return { ...layer, tiles: newTiles };
-      }));
+      }),
+    );
+  };
+
+  const handleTextureUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const texture = e.target?.result as string;
+        handleEditTile(index, { ...tiles[index], texture });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const tileStats = layers
+    .flatMap((layer) => layer.tiles)
+    .flat()
+    .reduce((acc, tile) => {
+      acc[tile.type] = (acc[tile.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+  const chartData = Object.entries(tileStats).map(([type, count]) => ({ type, count }));
+
+  const handleMapSizeChange = (dimension: "columns" | "rows", value: number) => {
+    setMapSize((prev) => {
+      const newSize = { ...prev, [dimension]: value };
+      setLayers((prevLayers) =>
+        prevLayers.map((layer) => {
+          const newTiles = Array(newSize.rows)
+            .fill(null)
+            .map((_, rowIndex) =>
+              Array(newSize.columns)
+                .fill(null)
+                .map((_, colIndex) => {
+                  if (rowIndex < layer.tiles.length && colIndex < layer.tiles[0].length) {
+                    return layer.tiles[rowIndex][colIndex];
+                  }
+                  return { type: "Empty", color: "#E5E7EB" };
+                }),
+            );
+          return { ...layer, tiles: newTiles };
+        }),
+      );
       return newSize;
     });
   };
 
   const addLayer = () => {
     const newLayer: MapLayer = {
-      tiles: Array(mapSize.rows).fill(null).map(() => 
-        Array(mapSize.columns).fill({ type: 'Empty', color: '#E5E7EB' })
-      )
+      tiles: Array(mapSize.rows)
+        .fill(null)
+        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "#E5E7EB" })),
     };
     setLayers([...layers, newLayer]);
     setCurrentLayer(layers.length);
@@ -184,10 +197,10 @@ export default function WorldBuilder() {
       setIsDragging(false);
     };
 
-    window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener("mouseup", handleGlobalMouseUp);
 
     return () => {
-      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
     };
   }, []);
 
@@ -213,7 +226,10 @@ export default function WorldBuilder() {
                 ))}
                 <Button onClick={addLayer}>Add Layer</Button>
                 {layers.length > 1 && (
-                  <Button onClick={() => removeLayer(currentLayer)} variant="destructive">
+                  <Button
+                    onClick={() => removeLayer(currentLayer)}
+                    variant="destructive"
+                  >
                     Remove Layer
                   </Button>
                 )}
@@ -228,18 +244,18 @@ export default function WorldBuilder() {
                   row.map((tile, colIndex) => (
                     <div
                       key={`${rowIndex}-${colIndex}`}
-                      className={`w-full pt-[100%] relative border border-gray-300`}
+                      className="w-full pt-[100%] relative border border-gray-300"
                       style={{
                         backgroundColor: tile.color,
-                        backgroundImage: tile.texture ? `url(${tile.texture})` : 'none',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
+                        backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
                       }}
                       onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
                       onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
                       onMouseUp={handleMouseUp}
                     ></div>
-                  ))
+                  )),
                 )}
               </div>
             </CardContent>
@@ -254,14 +270,17 @@ export default function WorldBuilder() {
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
                   {tiles.map((tile, index) => (
-                    <div key={tile.type} className="relative group">
+                    <div
+                      key={tile.type}
+                      className="relative group"
+                    >
                       <button
-                        className={`w-full h-12 rounded ${selectedTile === tile.type ? 'ring-2 ring-blue-500' : ''}`}
+                        className={`w-full h-12 rounded ${selectedTile === tile.type ? "ring-2 ring-blue-500" : ""}`}
                         style={{
                           backgroundColor: tile.color,
-                          backgroundImage: tile.texture ? `url(${tile.texture})` : 'none',
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
+                          backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
                         }}
                         onClick={() => setSelectedTile(tile.type)}
                       >
@@ -271,9 +290,9 @@ export default function WorldBuilder() {
                       </button>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button 
-                            size="icon" 
-                            variant="outline" 
+                          <Button
+                            size="icon"
+                            variant="outline"
                             className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <Edit className="h-3 w-3" />
@@ -298,7 +317,12 @@ export default function WorldBuilder() {
                               <Input
                                 id={`tile-type-${index}`}
                                 value={tile.type}
-                                onChange={(e) => handleEditTile(index, { ...tile, type: e.target.value })}
+                                onChange={(e) =>
+                                  handleEditTile(index, {
+                                    ...tile,
+                                    type: e.target.value,
+                                  })
+                                }
                               />
                             </div>
                             <div className="space-y-1">
@@ -308,12 +332,22 @@ export default function WorldBuilder() {
                                   id={`tile-color-${index}`}
                                   type="color"
                                   value={tile.color}
-                                  onChange={(e) => handleEditTile(index, { ...tile, color: e.target.value })}
+                                  onChange={(e) =>
+                                    handleEditTile(index, {
+                                      ...tile,
+                                      color: e.target.value,
+                                    })
+                                  }
                                   className="w-12 h-8 p-0"
                                 />
                                 <Input
                                   value={tile.color}
-                                  onChange={(e) => handleEditTile(index, { ...tile, color: e.target.value })}
+                                  onChange={(e) =>
+                                    handleEditTile(index, {
+                                      ...tile,
+                                      color: e.target.value,
+                                    })
+                                  }
                                   className="flex-grow"
                                 />
                               </div>
@@ -321,8 +355,14 @@ export default function WorldBuilder() {
                             <div className="space-y-1">
                               <Label htmlFor={`tile-texture-${index}`}>Texture</Label>
                               <div className="flex items-center space-x-2">
-                                <Button asChild variant="outline">
-                                  <label htmlFor={`tile-texture-${index}`} className="cursor-pointer">
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                >
+                                  <label
+                                    htmlFor={`tile-texture-${index}`}
+                                    className="cursor-pointer"
+                                  >
                                     <Upload className="h-4 w-4 mr-2" />
                                     Upload Texture
                                     <input
@@ -337,7 +377,12 @@ export default function WorldBuilder() {
                                 {tile.texture && (
                                   <Button
                                     variant="outline"
-                                    onClick={() => handleEditTile(index, { ...tile, texture: undefined })}
+                                    onClick={() =>
+                                      handleEditTile(index, {
+                                        ...tile,
+                                        texture: undefined,
+                                      })
+                                    }
                                   >
                                     Remove Texture
                                   </Button>
@@ -349,7 +394,10 @@ export default function WorldBuilder() {
                       </Popover>
                     </div>
                   ))}
-                  <Button onClick={handleAddTile} className="h-12">
+                  <Button
+                    onClick={handleAddTile}
+                    className="h-12"
+                  >
                     <Plus className="h-6 w-6" />
                   </Button>
                 </div>
@@ -361,7 +409,7 @@ export default function WorldBuilder() {
                     max={20}
                     step={1}
                     value={[mapSize.columns]}
-                    onValueChange={(value) => handleMapSizeChange('columns', value[0])}
+                    onValueChange={(value) => handleMapSizeChange("columns", value[0])}
                   />
                 </div>
                 <div>
@@ -372,7 +420,7 @@ export default function WorldBuilder() {
                     max={20}
                     step={1}
                     value={[mapSize.rows]}
-                    onValueChange={(value) => handleMapSizeChange('rows', value[0])}
+                    onValueChange={(value) => handleMapSizeChange("rows", value[0])}
                   />
                 </div>
                 <div className="space-x-2">
@@ -380,7 +428,12 @@ export default function WorldBuilder() {
                   <Button asChild>
                     <label>
                       Load Map
-                      <Input type="file" className="hidden" onChange={handleLoad} accept=".json" />
+                      <Input
+                        type="file"
+                        className="hidden"
+                        onChange={handleLoad}
+                        accept=".json"
+                      />
                     </label>
                   </Button>
                 </div>
@@ -406,14 +459,20 @@ export default function WorldBuilder() {
               <CardTitle>Tile Distribution</CardTitle>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer
+                width="100%"
+                height={200}
+              >
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="type" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="count" fill="#8884d8" />
+                  <Bar
+                    dataKey="count"
+                    fill="#8884d8"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -421,5 +480,5 @@ export default function WorldBuilder() {
         </div>
       </div>
     </div>
-  )
+  );
 }
