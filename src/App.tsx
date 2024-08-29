@@ -25,13 +25,13 @@ export default function WorldBuilder() {
     {
       tiles: Array(mapSize.rows)
         .fill(null)
-        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "#E5E7EB" })),
+        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "transparent" })),
     },
   ]);
   const [currentLayer, setCurrentLayer] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [tiles, setTiles] = useState<Tile[]>([
-    { type: "Empty", color: "#E5E7EB" },
+    { type: "Empty", color: "transparent" },
     { type: "Wall", color: "#1F2937" },
     { type: "Start", color: "#10B981" },
     { type: "End", color: "#EF4444" },
@@ -164,7 +164,7 @@ export default function WorldBuilder() {
                   if (rowIndex < layer.tiles.length && colIndex < layer.tiles[0].length) {
                     return layer.tiles[rowIndex][colIndex];
                   }
-                  return { type: "Empty", color: "#E5E7EB" };
+                  return { type: "Empty", color: "transparent" };
                 }),
             );
           return { ...layer, tiles: newTiles };
@@ -178,7 +178,7 @@ export default function WorldBuilder() {
     const newLayer: MapLayer = {
       tiles: Array(mapSize.rows)
         .fill(null)
-        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "#E5E7EB" })),
+        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "transparent" })),
     };
     setLayers([...layers, newLayer]);
     setCurrentLayer(layers.length);
@@ -234,27 +234,29 @@ export default function WorldBuilder() {
                   </Button>
                 )}
               </div>
-              <div className="relative">
+              <div className="relative w-full aspect-square">
                 {layers.map((layer, layerIndex) => (
                   <div
                     key={layerIndex}
-                    className="absolute top-0 left-0 w-full h-full"
+                    className="absolute inset-0"
                     style={{
-                      zIndex: layerIndex === currentLayer ? layers.length : layerIndex,
-                      opacity: layerIndex === currentLayer ? (layerIndex === 0 ? 1 : 0.8) : 1,
+                      zIndex: layerIndex <= currentLayer ? layers.length - layerIndex : 0,
+                      opacity: layerIndex === currentLayer ? 1 : layerIndex < currentLayer ? 0.3 : 0,
+                      pointerEvents: layerIndex === currentLayer ? 'auto' : 'none',
                     }}
                   >
                     <div
-                      className="grid gap-1"
+                      className="grid h-full w-full"
                       style={{
-                        gridTemplateColumns: `repeat(${mapSize.columns}, minmax(0, 1fr))`,
+                        gridTemplateColumns: `repeat(${mapSize.columns}, 1fr)`,
+                        gridTemplateRows: `repeat(${mapSize.rows}, 1fr)`,
                       }}
                     >
                       {layer.tiles.map((row, rowIndex) =>
                         row.map((tile, colIndex) => (
                           <div
                             key={`${layerIndex}-${rowIndex}-${colIndex}`}
-                            className="w-full pt-[100%] relative border border-gray-300"
+                            className="border border-gray-300"
                             style={{
                               backgroundColor: tile.color,
                               backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
@@ -297,7 +299,7 @@ export default function WorldBuilder() {
                         }}
                         onClick={() => setSelectedTile(tile.type)}
                       >
-                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white text-shadow">
+                        <span className={`-mt-0.5 absolute inset-0 flex items-center justify-center text-xs font-bold ${getTileButtonTextColor(tile)}`}>
                           {tile.type}
                         </span>
                       </button>
@@ -426,12 +428,11 @@ export default function WorldBuilder() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="map-rows">Map Rows</Label>
-                  <Slider
+                  <Label htmlFor="map-rows">Map Rows</Label>                  <Slider
                     id="map-rows"
                     min={5}
                     max={20}
-                                    step={1}
+                    step={1}
                     value={[mapSize.rows]}
                     onValueChange={(value) => handleMapSizeChange("rows", value[0])}
                   />
@@ -494,4 +495,24 @@ export default function WorldBuilder() {
       </div>
     </div>
   );
+}
+
+function getTileButtonTextColor(tile: Tile): string {
+  // If the tile has a texture, use white text with a shadow for better visibility
+  if (tile.texture) {
+    return "text-white [text-shadow:_2px_2px_0px_rgb(0_0_0_/_0.8)]";
+  }
+
+  if (tile.color === "transparent") {
+    return "text-black";
+  }
+
+  const hex = tile.color.replace('#', '');
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  return luminance > 0.5 ? "text-black" : "text-white";
 }
