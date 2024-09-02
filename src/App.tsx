@@ -47,15 +47,15 @@ interface MapSize {
   rows: number;
 }
 
-type TileSaveData = Omit<Tile, "texture"> & { texture: { filename: string } | undefined };
+type SaveDataTile = Omit<Tile, "texture"> & { texture: { filename: string } | undefined };
 
 interface SaveData {
   layers: {
-    tiles: TileSaveData[][];
+    tiles: SaveDataTile[][];
   }[];
   settings: {
     mapSize: MapSize;
-    toolbarTiles: TileSaveData[];
+    toolbarTiles: SaveDataTile[];
     textureRefs: Record<string, string>;
   };
 }
