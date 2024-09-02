@@ -8,7 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Edit, Plus, Trash2, Upload } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
-import { useToast } from "src/components/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+
 import {
   Dialog,
   DialogContent,
@@ -347,7 +348,7 @@ export default function WorldBuilder() {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => openDeleteLayerModal(index)}
                       >
                         <Trash2 className="h-3 w-3 text-destructive" />
@@ -420,7 +421,7 @@ export default function WorldBuilder() {
                       className="relative group"
                     >
                       <button
-                        className={`w-full h-12 rounded ${selectedTile === tile.type ? "ring-2 ring-blue-500" : ""}`}
+                        className={`w-full h-12 ${selectedTile === tile.type ? "ring-2 ring-blue-500" : ""}`}
                         style={{
                           backgroundColor: tile.color,
                           backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
@@ -442,7 +443,7 @@ export default function WorldBuilder() {
                           <Button
                             size="icon"
                             variant="outline"
-                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
