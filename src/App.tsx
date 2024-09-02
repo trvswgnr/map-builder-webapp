@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Edit, Plus, Trash2, Upload } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "src/components/hooks/use-toast";
+
 import {
   Dialog,
   DialogContent,
@@ -23,27 +26,22 @@ interface Tile {
 }
 
 const defaultToolbarTiles = {
-  empty: { color: "transparent" },
-  wall: { color: "#1F2937" },
-  start: { color: "#10B981" },
-  end: { color: "#EF4444" },
-  item: { color: "#F59E0B" },
-  enemy: { color: "#8B5CF6" },
+  empty: { type: "Empty", color: "transparent" },
+  wall: { type: "Wall", color: "#1F2937" },
+  start: { type: "Start", color: "#10B981" },
+  end: { type: "End", color: "#EF4444" },
+  item: { type: "Item", color: "#F59E0B" },
+  enemy: { type: "Enemy", color: "#8B5CF6" },
 } as const;
 
-const defaultToolbarTilesArray = Object.entries(defaultToolbarTiles).map(([k, v]) => {
-  const tile: Tile = {
-    type: k,
-    color: v.color,
-  };
-  return tile;
-});
+const defaultToolbarTilesArray = Object.values(defaultToolbarTiles);
 
 interface MapLayer {
   tiles: Tile[][];
 }
 
 export default function WorldBuilder() {
+  const { toast } = useToast();
   const [mapSize, setMapSize] = useState({ columns: 10, rows: 10 });
   const [selectedTile, setSelectedTile] = useState<string>("Empty");
   const [layers, setLayers] = useState<MapLayer[]>([
@@ -152,7 +150,14 @@ export default function WorldBuilder() {
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const texture = e.target?.result as string;
+        const texture = e.target?.result;
+        if (typeof texture !== "string") {
+          return void toast({
+            title: "Error",
+            description: "Failed to load texture. Please try again.",
+            variant: "destructive",
+          });
+        }
         handleToolbarEditTile(index, { ...toolbarTiles[index], texture });
       };
       reader.readAsDataURL(file);
@@ -183,7 +188,7 @@ export default function WorldBuilder() {
                   if (rowIndex < layer.tiles.length && colIndex < layer.tiles[0].length) {
                     return layer.tiles[rowIndex][colIndex];
                   }
-                  return { type: "Empty", color: "transparent" };
+                  return defaultToolbarTiles.empty;
                 }),
             );
           return { ...layer, tiles: newTiles };
@@ -197,7 +202,7 @@ export default function WorldBuilder() {
     const newLayer: MapLayer = {
       tiles: Array(mapSize.rows)
         .fill(null)
-        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "transparent" })),
+        .map(() => Array(mapSize.columns).fill(defaultToolbarTiles.empty)),
     };
     setLayers([...layers, newLayer]);
     setCurrentLayer(layers.length);
@@ -570,6 +575,7 @@ export default function WorldBuilder() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Toaster />
     </div>
   );
 }
