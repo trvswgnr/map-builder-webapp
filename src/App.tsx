@@ -7,7 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Edit, Plus, Trash2, Upload } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Tile {
   type: string;
@@ -217,17 +224,20 @@ export default function WorldBuilder() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-4">World Builder</h1>
+      <h1 className="text-3xl font-bold mb-5">Map Builder</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Map Editor</CardTitle>
+              <CardTitle>Editor</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex space-x-2">
                 {layers.map((_, index) => (
-                  <div key={index} className="relative group">
+                  <div
+                    key={index}
+                    className="relative group"
+                  >
                     <Button
                       variant={currentLayer === index ? "default" : "outline"}
                       onClick={() => setCurrentLayer(index)}
@@ -246,7 +256,9 @@ export default function WorldBuilder() {
                     )}
                   </div>
                 ))}
-                <Button onClick={addLayer}>Add Layer</Button>
+                <Button onClick={addLayer}>
+                  <Plus />
+                </Button>
               </div>
               <div className="relative w-full aspect-square">
                 {layers.map((layer, layerIndex) => (
@@ -256,7 +268,7 @@ export default function WorldBuilder() {
                     style={{
                       zIndex: layerIndex <= currentLayer ? layers.length - layerIndex : 0,
                       opacity: layerIndex === currentLayer ? 1 : layerIndex < currentLayer ? 0.3 : 0,
-                      pointerEvents: layerIndex === currentLayer ? 'auto' : 'none',
+                      pointerEvents: layerIndex === currentLayer ? "auto" : "none",
                     }}
                   >
                     <div
@@ -270,7 +282,7 @@ export default function WorldBuilder() {
                         row.map((tile, colIndex) => (
                           <div
                             key={`${layerIndex}-${rowIndex}-${colIndex}`}
-                            className="border border-gray-300"
+                            className="border border-gray-300 dark:border-gray-900"
                             style={{
                               backgroundColor: tile.color,
                               backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
@@ -281,7 +293,7 @@ export default function WorldBuilder() {
                             onMouseEnter={() => layerIndex === currentLayer && handleMouseEnter(rowIndex, colIndex)}
                             onMouseUp={handleMouseUp}
                           ></div>
-                        ))
+                        )),
                       )}
                     </div>
                   </div>
@@ -313,7 +325,11 @@ export default function WorldBuilder() {
                         }}
                         onClick={() => setSelectedTile(tile.type)}
                       >
-                        <span className={`-mt-0.5 absolute inset-0 flex items-center justify-center text-xs font-bold ${getTileButtonTextColor(tile)}`}>
+                        <span
+                          className={`-mt-1 absolute inset-0 flex items-center justify-center text-xs font-bold ${getTileButtonTextColor(
+                            tile,
+                          )}`}
+                        >
                           {tile.type}
                         </span>
                       </button>
@@ -384,25 +400,27 @@ export default function WorldBuilder() {
                             <div className="space-y-1">
                               <Label htmlFor={`tile-texture-${index}`}>Texture</Label>
                               <div className="flex items-center space-x-2">
-                                <Button
-                                  asChild
-                                  variant="outline"
-                                >
-                                  <label
-                                    htmlFor={`tile-texture-${index}`}
-                                    className="cursor-pointer"
+                                {!tile.texture ? (
+                                  <Button
+                                    asChild
+                                    variant="outline"
                                   >
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    Upload Texture
-                                    <input
-                                      id={`tile-texture-${index}`}
-                                      type="file"
-                                      className="hidden"
-                                      accept="image/*"
-                                      onChange={(e) => handleTextureUpload(index, e)}
-                                    />
-                                  </label>
-                                </Button>
+                                    <label
+                                      htmlFor={`tile-texture-${index}`}
+                                      className="cursor-pointer"
+                                    >
+                                      <Upload className="h-4 w-4 mr-2" />
+                                      Upload Texture
+                                      <input
+                                        id={`tile-texture-${index}`}
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={(e) => handleTextureUpload(index, e)}
+                                      />
+                                    </label>
+                                  </Button>
+                                ) : null}
                                 {tile.texture && (
                                   <Button
                                     variant="outline"
@@ -442,7 +460,8 @@ export default function WorldBuilder() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="map-rows">Map Rows</Label>                  <Slider
+                  <Label htmlFor="map-rows">Map Rows</Label>{" "}
+                  <Slider
                     id="map-rows"
                     min={5}
                     max={20}
@@ -508,17 +527,31 @@ export default function WorldBuilder() {
         </div>
       </div>
 
-      <Dialog open={layerToDelete !== null} onOpenChange={closeDeleteLayerModal}>
+      <Dialog
+        open={layerToDelete !== null}
+        onOpenChange={closeDeleteLayerModal}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Layer</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete Layer {layerToDelete !== null ? layerToDelete + 1 : ''}? This action cannot be undone.
+              Are you sure you want to delete Layer {layerToDelete !== null ? layerToDelete + 1 : ""}? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDeleteLayerModal}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmDeleteLayer}>Delete</Button>
+            <Button
+              variant="outline"
+              onClick={closeDeleteLayerModal}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteLayer}
+            >
+              Delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -533,10 +566,10 @@ function getTileButtonTextColor(tile: Tile): string {
   }
 
   if (tile.color === "transparent") {
-    return "text-black";
+    return "text-black dark:text-white";
   }
 
-  const hex = tile.color.replace('#', '');
+  const hex = tile.color.replace("#", "");
   const r = parseInt(hex.slice(0, 2), 16);
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
