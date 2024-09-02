@@ -189,7 +189,7 @@ export default function WorldBuilder() {
   };
 
   const handleToolbarAddTile = () => {
-    const newTile: Tile = { type: `New Tile ${toolbarTiles.length + 1}`, color: "#000000" };
+    const newTile: Tile = { type: `NewTile${toolbarTiles.length + 1}`, color: getRandomColor() };
     setToolbarTiles([...toolbarTiles, newTile]);
   };
 
@@ -697,4 +697,8 @@ function createTextureRefs(layers: MapLayer[]) {
     }
   }
   return texturesMap;
+}
+
+function getRandomColor() {
+  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
 }
