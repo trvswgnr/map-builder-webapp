@@ -22,6 +22,23 @@ interface Tile {
   texture?: string;
 }
 
+const defaultToolbarTiles = {
+  empty: { color: "transparent" },
+  wall: { color: "#1F2937" },
+  start: { color: "#10B981" },
+  end: { color: "#EF4444" },
+  item: { color: "#F59E0B" },
+  enemy: { color: "#8B5CF6" },
+} as const;
+
+const defaultToolbarTilesArray = Object.entries(defaultToolbarTiles).map(([k, v]) => {
+  const tile: Tile = {
+    type: k,
+    color: v.color,
+  };
+  return tile;
+});
+
 interface MapLayer {
   tiles: Tile[][];
 }
@@ -33,42 +50,35 @@ export default function WorldBuilder() {
     {
       tiles: Array(mapSize.rows)
         .fill(null)
-        .map(() => Array(mapSize.columns).fill({ type: "Empty", color: "transparent" })),
+        .map(() => Array(mapSize.columns).fill(defaultToolbarTiles.empty)),
     },
   ]);
   const [currentLayer, setCurrentLayer] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [tiles, setTiles] = useState<Tile[]>([
-    { type: "Empty", color: "transparent" },
-    { type: "Wall", color: "#1F2937" },
-    { type: "Start", color: "#10B981" },
-    { type: "End", color: "#EF4444" },
-    { type: "Item", color: "#F59E0B" },
-    { type: "Enemy", color: "#8B5CF6" },
-  ]);
+  const [toolbarTiles, setToolbarTiles] = useState<Tile[]>(defaultToolbarTilesArray);
   const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
 
   const handleTileClick = (row: number, col: number) => {
     const newLayers = [...layers];
-    const selectedTileData = tiles.find((tile) => tile.type === selectedTile);
+    const selectedTileData = toolbarTiles.find((tile) => tile.type === selectedTile);
     if (selectedTileData) {
       newLayers[currentLayer].tiles[row][col] = { ...selectedTileData };
     }
     setLayers(newLayers);
   };
 
-  const handleMouseDown = (row: number, col: number) => {
+  const handleEditorMouseDown = (row: number, col: number) => {
     setIsDragging(true);
     handleTileClick(row, col);
   };
 
-  const handleMouseEnter = (row: number, col: number) => {
+  const handleEditorMouseEnter = (row: number, col: number) => {
     if (isDragging) {
       handleTileClick(row, col);
     }
   };
 
-  const handleMouseUp = () => {
+  const handleEditorMouseUp = () => {
     setIsDragging(false);
   };
 
@@ -96,15 +106,15 @@ export default function WorldBuilder() {
     }
   };
 
-  const handleAddTile = () => {
-    const newTile: Tile = { type: `New Tile ${tiles.length + 1}`, color: "#000000" };
-    setTiles([...tiles, newTile]);
+  const handleToolbarAddTile = () => {
+    const newTile: Tile = { type: `New Tile ${toolbarTiles.length + 1}`, color: "#000000" };
+    setToolbarTiles([...toolbarTiles, newTile]);
   };
 
-  const handleEditTile = (index: number, updatedTile: Tile) => {
-    const newTiles = [...tiles];
+  const handleToolbarEditTile = (index: number, updatedTile: Tile) => {
+    const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
-    setTiles(newTiles);
+    setToolbarTiles(newTiles);
 
     // Update the map to reflect the changes in tile properties
     setLayers((prevLayers) =>
@@ -117,12 +127,12 @@ export default function WorldBuilder() {
     );
   };
 
-  const handleDeleteTile = (index: number) => {
-    const newTiles = tiles.filter((_, i) => i !== index);
-    setTiles(newTiles);
+  const handleToolbarDeleteTile = (index: number) => {
+    const newTiles = toolbarTiles.filter((_, i) => i !== index);
+    setToolbarTiles(newTiles);
 
     // If the deleted tile was selected, reset the selection
-    if (selectedTile === tiles[index].type) {
+    if (selectedTile === toolbarTiles[index].type) {
       setSelectedTile("Empty");
     }
 
@@ -130,7 +140,7 @@ export default function WorldBuilder() {
     setLayers((prevLayers) =>
       prevLayers.map((layer) => {
         const newTiles = layer.tiles.map((row) =>
-          row.map((tile) => (tile.type === tiles[index].type ? tiles[0] : tile)),
+          row.map((tile) => (tile.type === toolbarTiles[index].type ? toolbarTiles[0] : tile)),
         );
         return { ...layer, tiles: newTiles };
       }),
@@ -143,7 +153,7 @@ export default function WorldBuilder() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const texture = e.target?.result as string;
-        handleEditTile(index, { ...tiles[index], texture });
+        handleToolbarEditTile(index, { ...toolbarTiles[index], texture });
       };
       reader.readAsDataURL(file);
     }
@@ -260,7 +270,10 @@ export default function WorldBuilder() {
                   <Plus />
                 </Button>
               </div>
-              <div className="relative w-full aspect-square">
+              <div
+                className="relative w-full"
+                style={{ paddingBottom: `${(mapSize.rows / mapSize.columns) * 100}%` }}
+              >
                 {layers.map((layer, layerIndex) => (
                   <div
                     key={layerIndex}
@@ -289,9 +302,11 @@ export default function WorldBuilder() {
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                             }}
-                            onMouseDown={() => layerIndex === currentLayer && handleMouseDown(rowIndex, colIndex)}
-                            onMouseEnter={() => layerIndex === currentLayer && handleMouseEnter(rowIndex, colIndex)}
-                            onMouseUp={handleMouseUp}
+                            onMouseDown={() => layerIndex === currentLayer && handleEditorMouseDown(rowIndex, colIndex)}
+                            onMouseEnter={() =>
+                              layerIndex === currentLayer && handleEditorMouseEnter(rowIndex, colIndex)
+                            }
+                            onMouseUp={handleEditorMouseUp}
                           ></div>
                         )),
                       )}
@@ -310,7 +325,7 @@ export default function WorldBuilder() {
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
-                  {tiles.map((tile, index) => (
+                  {toolbarTiles.map((tile, index) => (
                     <div
                       key={tile.type}
                       className="relative group"
@@ -351,7 +366,7 @@ export default function WorldBuilder() {
                                 <Button
                                   size="icon"
                                   variant="destructive"
-                                  onClick={() => handleDeleteTile(index)}
+                                  onClick={() => handleToolbarDeleteTile(index)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -363,7 +378,7 @@ export default function WorldBuilder() {
                                 id={`tile-type-${index}`}
                                 value={tile.type}
                                 onChange={(e) =>
-                                  handleEditTile(index, {
+                                  handleToolbarEditTile(index, {
                                     ...tile,
                                     type: e.target.value,
                                   })
@@ -378,7 +393,7 @@ export default function WorldBuilder() {
                                   type="color"
                                   value={tile.color}
                                   onChange={(e) =>
-                                    handleEditTile(index, {
+                                    handleToolbarEditTile(index, {
                                       ...tile,
                                       color: e.target.value,
                                     })
@@ -388,7 +403,7 @@ export default function WorldBuilder() {
                                 <Input
                                   value={tile.color}
                                   onChange={(e) =>
-                                    handleEditTile(index, {
+                                    handleToolbarEditTile(index, {
                                       ...tile,
                                       color: e.target.value,
                                     })
@@ -425,7 +440,7 @@ export default function WorldBuilder() {
                                   <Button
                                     variant="outline"
                                     onClick={() =>
-                                      handleEditTile(index, {
+                                      handleToolbarEditTile(index, {
                                         ...tile,
                                         texture: undefined,
                                       })
@@ -442,14 +457,14 @@ export default function WorldBuilder() {
                     </div>
                   ))}
                   <Button
-                    onClick={handleAddTile}
+                    onClick={handleToolbarAddTile}
                     className="h-12"
                   >
                     <Plus className="h-6 w-6" />
                   </Button>
                 </div>
                 <div>
-                  <Label htmlFor="map-columns">Map Columns</Label>
+                  <Label htmlFor="map-columns">Map Columns: {mapSize.columns}</Label>
                   <Slider
                     id="map-columns"
                     min={5}
@@ -460,7 +475,7 @@ export default function WorldBuilder() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="map-rows">Map Rows</Label>{" "}
+                  <Label htmlFor="map-rows">Map Rows: {mapSize.rows}</Label>{" "}
                   <Slider
                     id="map-rows"
                     min={5}
