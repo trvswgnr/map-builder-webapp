@@ -9,7 +9,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Edit, Plus, Trash2, Upload } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "src/components/hooks/use-toast";
-
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,10 @@ import {
 interface Tile {
   type: string;
   color: string;
-  texture?: string;
+  texture?: {
+    filename: string;
+    data: string;
+  };
 }
 
 const defaultToolbarTiles = {
@@ -40,9 +42,38 @@ interface MapLayer {
   tiles: Tile[][];
 }
 
-export default function WorldBuilder() {
+interface MapSize {
+  columns: number;
+  rows: number;
+}
+
+type TileSaveData = Omit<Tile, "texture"> & { texture: { filename: string } | undefined };
+
+interface SaveData {
+  layers: {
+    tiles: TileSaveData[][];
+  }[];
+  settings: {
+    mapSize: MapSize;
+    toolbarTiles: TileSaveData[];
+    textureRefs: Record<string, string>;
+  };
+}
+
+function useErrorToast() {
   const { toast } = useToast();
-  const [mapSize, setMapSize] = useState({ columns: 10, rows: 10 });
+  return (description: string) => {
+    toast({
+      title: "Error",
+      description,
+      variant: "destructive",
+    } as const);
+  };
+}
+
+export default function WorldBuilder() {
+  const errorToast = useErrorToast();
+  const [mapSize, setMapSize] = useState<MapSize>({ columns: 10, rows: 10 });
   const [selectedTile, setSelectedTile] = useState<string>("Empty");
   const [layers, setLayers] = useState<MapLayer[]>([
     {
@@ -81,8 +112,35 @@ export default function WorldBuilder() {
   };
 
   const handleSave = () => {
-    const jsonMap = JSON.stringify(layers);
-    const blob = new Blob([jsonMap], { type: "application/json" });
+    const saveData: SaveData = {
+      layers: layers.map((layer) => ({
+        tiles: layer.tiles.map((row) =>
+          row.map((tile) => ({
+            type: tile.type,
+            color: tile.color,
+            texture: tile.texture
+              ? {
+                  filename: tile.texture.filename,
+                }
+              : undefined,
+          })),
+        ),
+      })),
+      settings: {
+        mapSize: mapSize,
+        toolbarTiles: toolbarTiles.map((tile) => ({
+          type: tile.type,
+          color: tile.color,
+          texture: tile.texture
+            ? {
+                filename: tile.texture.filename,
+              }
+            : undefined,
+        })),
+        textureRefs: createTextureRefs(layers),
+      },
+    };
+    const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -92,16 +150,41 @@ export default function WorldBuilder() {
 
   const handleLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const loadedMap = JSON.parse(content);
-        setLayers(loadedMap);
-        setMapSize({ columns: loadedMap[0].tiles[0].length, rows: loadedMap[0].tiles.length });
-      };
-      reader.readAsText(file);
+    if (!file) {
+      return void errorToast("No file selected. Please select a file.");
     }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result;
+      if (typeof content !== "string") {
+        return void errorToast("Failed to load map. Please try again.");
+      }
+      const saveData: SaveData = JSON.parse(content);
+      setLayers(
+        saveData.layers.map((layer) => ({
+          tiles: layer.tiles.map((row) =>
+            row.map((tile) => ({
+              type: tile.type,
+              color: tile.color,
+              texture: tile.texture
+                ? { filename: tile.texture.filename, data: saveData.settings.textureRefs[tile.texture.filename] }
+                : undefined,
+            })),
+          ),
+        })),
+      );
+      setMapSize({ columns: saveData.settings.mapSize.columns, rows: saveData.settings.mapSize.rows });
+      setToolbarTiles(
+        saveData.settings.toolbarTiles.map((tile) => ({
+          type: tile.type,
+          color: tile.color,
+          texture: tile.texture
+            ? { filename: tile.texture.filename, data: saveData.settings.textureRefs[tile.texture.filename] }
+            : undefined,
+        })),
+      );
+    };
+    reader.readAsText(file);
   };
 
   const handleToolbarAddTile = () => {
@@ -147,17 +230,18 @@ export default function WorldBuilder() {
 
   const handleTextureUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const texture = e.target?.result;
-        if (typeof texture !== "string") {
-          return void toast({
-            title: "Error",
-            description: "Failed to load texture. Please try again.",
-            variant: "destructive",
-          });
+        const res = e.target?.result;
+        if (typeof res !== "string") {
+          return void errorToast("Failed to load texture. e.target.result is not a string. Please try again.");
         }
+        const texture = {
+          filename: file.name,
+          data: res,
+        };
         handleToolbarEditTile(index, { ...toolbarTiles[index], texture });
       };
       reader.readAsDataURL(file);
@@ -303,7 +387,7 @@ export default function WorldBuilder() {
                             className="border border-gray-300 dark:border-gray-900"
                             style={{
                               backgroundColor: tile.color,
-                              backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
+                              backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
                               backgroundSize: "cover",
                               backgroundPosition: "center",
                             }}
@@ -339,7 +423,7 @@ export default function WorldBuilder() {
                         className={`w-full h-12 rounded ${selectedTile === tile.type ? "ring-2 ring-blue-500" : ""}`}
                         style={{
                           backgroundColor: tile.color,
-                          backgroundImage: tile.texture ? `url(${tile.texture})` : "none",
+                          backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                         }}
@@ -598,4 +682,18 @@ function getTileButtonTextColor(tile: Tile): string {
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
   return luminance > 0.5 ? "text-black" : "text-white";
+}
+
+function createTextureRefs(layers: MapLayer[]) {
+  const texturesMap: Record<string, string> = {};
+  for (const layer of layers) {
+    for (const row of layer.tiles) {
+      for (const tile of row) {
+        if (tile.texture) {
+          texturesMap[tile.texture.filename] = tile.texture.data;
+        }
+      }
+    }
+  }
+  return texturesMap;
 }
