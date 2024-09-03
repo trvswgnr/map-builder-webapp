@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { Edit, Plus, Trash2, Upload } from "lucide-react";
+import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
 
@@ -28,16 +28,15 @@ interface Tile {
   };
 }
 
-const defaultToolbarTiles = {
-  empty: { type: "Empty", color: "transparent" },
-  wall: { type: "Wall", color: "#1F2937" },
-  start: { type: "Start", color: "#10B981" },
-  end: { type: "End", color: "#EF4444" },
-  item: { type: "Item", color: "#F59E0B" },
-  enemy: { type: "Enemy", color: "#8B5CF6" },
-} as const;
+const EMPTY_TILE = { type: "empty", color: "transparent" } as const;
 
-const defaultToolbarTilesArray = Object.values(defaultToolbarTiles);
+const DEFAULT_TOOLBAR_TILES: Tile[] = [
+  EMPTY_TILE,
+  { type: "wall", color: "#1f2937" },
+  { type: "start", color: "#41e5e5" },
+  { type: "end", color: "#5cf671" },
+  { type: "enemy", color: "#ef4444" },
+];
 
 interface MapLayer {
   tiles: Tile[][];
@@ -49,11 +48,9 @@ interface MapSize {
 }
 
 type SaveDataTile = Omit<Tile, "texture"> & { texture: { filename: string } | undefined };
-
+type SaveDataLayer = SaveDataTile[][];
 interface SaveData {
-  layers: {
-    tiles: SaveDataTile[][];
-  }[];
+  layers: SaveDataLayer[];
   settings: {
     mapSize: MapSize;
     toolbarTiles: SaveDataTile[];
@@ -75,17 +72,17 @@ function useErrorToast() {
 export default function WorldBuilder() {
   const errorToast = useErrorToast();
   const [mapSize, setMapSize] = useState<MapSize>({ columns: 10, rows: 10 });
-  const [selectedTile, setSelectedTile] = useState<string>("Empty");
+  const [selectedTile, setSelectedTile] = useState<string>("empty");
   const [layers, setLayers] = useState<MapLayer[]>([
     {
       tiles: Array(mapSize.rows)
         .fill(null)
-        .map(() => Array(mapSize.columns).fill(defaultToolbarTiles.empty)),
+        .map(() => Array(mapSize.columns).fill(EMPTY_TILE)),
     },
   ]);
   const [currentLayer, setCurrentLayer] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [toolbarTiles, setToolbarTiles] = useState<Tile[]>(defaultToolbarTilesArray);
+  const [toolbarTiles, setToolbarTiles] = useState<Tile[]>(DEFAULT_TOOLBAR_TILES);
   const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
 
   const handleTileClick = (row: number, col: number) => {
@@ -114,8 +111,8 @@ export default function WorldBuilder() {
 
   const handleSave = () => {
     const saveData: SaveData = {
-      layers: layers.map((layer) => ({
-        tiles: layer.tiles.map((row) =>
+      layers: layers.map((layer) =>
+        layer.tiles.map((row) =>
           row.map((tile) => ({
             type: tile.type,
             color: tile.color,
@@ -126,7 +123,7 @@ export default function WorldBuilder() {
               : undefined,
           })),
         ),
-      })),
+      ),
       settings: {
         mapSize: mapSize,
         toolbarTiles: toolbarTiles.map((tile) => ({
@@ -163,7 +160,7 @@ export default function WorldBuilder() {
       const saveData: SaveData = JSON.parse(content);
       setLayers(
         saveData.layers.map((layer) => ({
-          tiles: layer.tiles.map((row) =>
+          tiles: layer.map((row) =>
             row.map((tile) => ({
               type: tile.type,
               color: tile.color,
@@ -189,7 +186,10 @@ export default function WorldBuilder() {
   };
 
   const handleToolbarAddTile = () => {
-    const newTile: Tile = { type: `NewTile${toolbarTiles.length + 1}`, color: getRandomColor() };
+    const newTile: Tile = {
+      type: `NewTile${toolbarTiles.length + 1}`,
+      color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
+    };
     setToolbarTiles([...toolbarTiles, newTile]);
   };
 
@@ -215,7 +215,7 @@ export default function WorldBuilder() {
 
     // If the deleted tile was selected, reset the selection
     if (selectedTile === toolbarTiles[index].type) {
-      setSelectedTile("Empty");
+      setSelectedTile("empty");
     }
 
     // Update the map to replace deleted tile with 'Empty'
@@ -229,7 +229,7 @@ export default function WorldBuilder() {
     );
   };
 
-  const handleTextureUpload = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+  function handleTextureUpload(index: number, event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
 
     if (file) {
@@ -247,7 +247,7 @@ export default function WorldBuilder() {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }
 
   const tileStats = layers
     .flatMap((layer) => layer.tiles)
@@ -273,7 +273,7 @@ export default function WorldBuilder() {
                   if (rowIndex < layer.tiles.length && colIndex < layer.tiles[0].length) {
                     return layer.tiles[rowIndex][colIndex];
                   }
-                  return defaultToolbarTiles.empty;
+                  return EMPTY_TILE;
                 }),
             );
           return { ...layer, tiles: newTiles };
@@ -287,7 +287,7 @@ export default function WorldBuilder() {
     const newLayer: MapLayer = {
       tiles: Array(mapSize.rows)
         .fill(null)
-        .map(() => Array(mapSize.columns).fill(defaultToolbarTiles.empty)),
+        .map(() => Array(mapSize.columns).fill(EMPTY_TILE)),
     };
     setLayers([...layers, newLayer]);
     setCurrentLayer(layers.length);
@@ -339,7 +339,8 @@ export default function WorldBuilder() {
                     className="relative group"
                   >
                     <Button
-                      variant={currentLayer === index ? "default" : "outline"}
+                      variant={currentLayer === index ? "secondary" : "outline"}
+                      className={`border ${activeButtonClass(currentLayer === index)}`}
                       onClick={() => setCurrentLayer(index)}
                     >
                       Layer {index + 1}
@@ -348,16 +349,22 @@ export default function WorldBuilder() {
                       <Button
                         size="icon"
                         variant="outline"
-                        className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute z-10 -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive text-destructive hover:text-white"
                         onClick={() => openDeleteLayerModal(index)}
                       >
-                        <Trash2 className="h-3 w-3 text-destructive" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
                 ))}
-                <Button onClick={addLayer}>
-                  <Plus />
+                <Button
+                  onClick={addLayer}
+                  className="py-0 px-2"
+                >
+                  <Plus
+                    width={24}
+                    height={24}
+                  />
                 </Button>
               </div>
               <div
@@ -385,12 +392,10 @@ export default function WorldBuilder() {
                         row.map((tile, colIndex) => (
                           <div
                             key={`${layerIndex}-${rowIndex}-${colIndex}`}
-                            className="border border-gray-300 dark:border-gray-900"
+                            className="border border-gray-300 dark:border-gray-900 bg-cover bg-center"
                             style={{
                               backgroundColor: tile.color,
                               backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
                             }}
                             onMouseDown={() => layerIndex === currentLayer && handleEditorMouseDown(rowIndex, colIndex)}
                             onMouseEnter={() =>
@@ -407,191 +412,20 @@ export default function WorldBuilder() {
             </CardContent>
           </Card>
         </div>
-        <div>
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle>Toolbar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-2">
-                  {toolbarTiles.map((tile, index) => (
-                    <div
-                      key={tile.type}
-                      className="relative group"
-                    >
-                      <button
-                        className={`w-full h-12 ${selectedTile === tile.type ? "ring-2 ring-blue-500" : ""}`}
-                        style={{
-                          backgroundColor: tile.color,
-                          backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
-                        onClick={() => setSelectedTile(tile.type)}
-                      >
-                        <span
-                          className={`-mt-1 absolute inset-0 flex items-center justify-center text-xs font-bold ${getTileButtonTextColor(
-                            tile,
-                          )}`}
-                        >
-                          {tile.type}
-                        </span>
-                      </button>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <h3 className="font-bold">Edit Tile</h3>
-                              {index > 0 && (
-                                <Button
-                                  size="icon"
-                                  variant="destructive"
-                                  onClick={() => handleToolbarDeleteTile(index)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`tile-type-${index}`}>Type</Label>
-                              <Input
-                                id={`tile-type-${index}`}
-                                value={tile.type}
-                                onChange={(e) =>
-                                  handleToolbarEditTile(index, {
-                                    ...tile,
-                                    type: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`tile-color-${index}`}>Color</Label>
-                              <div className="flex space-x-2">
-                                <Input
-                                  id={`tile-color-${index}`}
-                                  type="color"
-                                  value={tile.color}
-                                  onChange={(e) =>
-                                    handleToolbarEditTile(index, {
-                                      ...tile,
-                                      color: e.target.value,
-                                    })
-                                  }
-                                  className="w-12 h-8 p-0"
-                                />
-                                <Input
-                                  value={tile.color}
-                                  onChange={(e) =>
-                                    handleToolbarEditTile(index, {
-                                      ...tile,
-                                      color: e.target.value,
-                                    })
-                                  }
-                                  className="flex-grow"
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`tile-texture-${index}`}>Texture</Label>
-                              <div className="flex items-center space-x-2">
-                                {!tile.texture ? (
-                                  <Button
-                                    asChild
-                                    variant="outline"
-                                  >
-                                    <label
-                                      htmlFor={`tile-texture-${index}`}
-                                      className="cursor-pointer"
-                                    >
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Upload Texture
-                                      <input
-                                        id={`tile-texture-${index}`}
-                                        type="file"
-                                        className="hidden"
-                                        accept="image/*"
-                                        onChange={(e) => handleTextureUpload(index, e)}
-                                      />
-                                    </label>
-                                  </Button>
-                                ) : null}
-                                {tile.texture && (
-                                  <Button
-                                    variant="outline"
-                                    onClick={() =>
-                                      handleToolbarEditTile(index, {
-                                        ...tile,
-                                        texture: undefined,
-                                      })
-                                    }
-                                  >
-                                    Remove Texture
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  ))}
-                  <Button
-                    onClick={handleToolbarAddTile}
-                    className="h-12"
-                  >
-                    <Plus className="h-6 w-6" />
-                  </Button>
-                </div>
-                <div>
-                  <Label htmlFor="map-columns">Map Columns: {mapSize.columns}</Label>
-                  <Slider
-                    id="map-columns"
-                    min={5}
-                    max={20}
-                    step={1}
-                    value={[mapSize.columns]}
-                    onValueChange={(value) => handleMapSizeChange("columns", value[0])}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="map-rows">Map Rows: {mapSize.rows}</Label>{" "}
-                  <Slider
-                    id="map-rows"
-                    min={5}
-                    max={20}
-                    step={1}
-                    value={[mapSize.rows]}
-                    onValueChange={(value) => handleMapSizeChange("rows", value[0])}
-                  />
-                </div>
-                <div className="space-x-2">
-                  <Button onClick={handleSave}>Save Map</Button>
-                  <Button asChild>
-                    <label>
-                      Load Map
-                      <Input
-                        type="file"
-                        className="hidden"
-                        onChange={handleLoad}
-                        accept=".json"
-                      />
-                    </label>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div id="right">
+          <Toolbar
+            toolbarTiles={toolbarTiles}
+            selectedTile={selectedTile}
+            mapSize={mapSize}
+            setSelectedTile={setSelectedTile}
+            handleToolbarAddTile={handleToolbarAddTile}
+            handleToolbarDeleteTile={handleToolbarDeleteTile}
+            handleToolbarEditTile={handleToolbarEditTile}
+            handleTextureUpload={handleTextureUpload}
+            handleMapSizeChange={handleMapSizeChange}
+            handleSave={handleSave}
+            handleLoad={handleLoad}
+          />
           <Card className="mb-4">
             <CardHeader>
               <CardTitle>Statistics</CardTitle>
@@ -660,6 +494,7 @@ export default function WorldBuilder() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <Toaster />
     </div>
   );
@@ -699,6 +534,272 @@ function createTextureRefs(layers: MapLayer[]) {
   return texturesMap;
 }
 
-function getRandomColor() {
-  return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+function getRandomColor(existingColors: string[]) {
+  const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+  // if it's one of our existing colors, we need to generate a new one
+  if (existingColors.includes(randomColor)) {
+    return getRandomColor(existingColors);
+  }
+  return `#${randomColor}`;
+}
+
+function activeButtonClass(isActive: boolean) {
+  return isActive ? "ring-2 ring-blue-500" : "";
+}
+
+function EditToolbarTilePopover({
+  tile,
+  index,
+  handleToolbarDeleteTile,
+  handleToolbarEditTile,
+  handleTextureUpload,
+}: {
+  tile: Tile;
+  index: number;
+  handleToolbarDeleteTile: (index: number) => void;
+  handleToolbarEditTile: (index: number, tile: Tile) => void;
+  handleTextureUpload: (index: number, event: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          size="icon"
+          variant="outline"
+          className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <Edit className="h-3 w-3" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80">
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold">Edit Tile</h3>
+            {index > 0 && (
+              <Button
+                size="icon"
+                variant="destructive"
+                onClick={() => handleToolbarDeleteTile(index)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`tile-type-${index}`}>Type</Label>
+            <Input
+              id={`tile-type-${index}`}
+              value={tile.type}
+              onChange={(e) =>
+                handleToolbarEditTile(index, {
+                  ...tile,
+                  type: e.target.value,
+                })
+              }
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`tile-color-${index}`}>Color</Label>
+            <div className="flex space-x-2">
+              <Input
+                id={`tile-color-${index}`}
+                type="color"
+                value={tile.color}
+                onChange={(e) =>
+                  handleToolbarEditTile(index, {
+                    ...tile,
+                    color: e.target.value,
+                  })
+                }
+                className="w-12 h-8 p-0"
+              />
+              <Input
+                value={tile.color}
+                onChange={(e) =>
+                  handleToolbarEditTile(index, {
+                    ...tile,
+                    color: e.target.value,
+                  })
+                }
+                className="flex-grow"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor={`tile-texture-${index}`}>Texture</Label>
+            <div className="flex items-center space-x-2">
+              {!tile.texture ? (
+                <Button
+                  asChild
+                  variant="outline"
+                >
+                  <label
+                    htmlFor={`tile-texture-${index}`}
+                    className="cursor-pointer"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Texture
+                    <input
+                      id={`tile-texture-${index}`}
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => handleTextureUpload(index, e)}
+                    />
+                  </label>
+                </Button>
+              ) : null}
+              {tile.texture && (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleToolbarEditTile(index, {
+                      ...tile,
+                      texture: undefined,
+                    })
+                  }
+                >
+                  Remove Texture
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function Toolbar({
+  toolbarTiles,
+  selectedTile,
+  mapSize,
+  setSelectedTile,
+  handleToolbarAddTile,
+  handleToolbarDeleteTile,
+  handleToolbarEditTile,
+  handleTextureUpload,
+  handleMapSizeChange,
+  handleSave,
+  handleLoad,
+}: {
+  toolbarTiles: Tile[];
+  selectedTile: string;
+  mapSize: { columns: number; rows: number };
+  setSelectedTile: (tile: string) => void;
+  handleToolbarAddTile: () => void;
+  handleToolbarDeleteTile: (index: number) => void;
+  handleToolbarEditTile: (index: number, tile: Tile) => void;
+  handleTextureUpload: (index: number, event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleMapSizeChange: (dimension: "columns" | "rows", value: number) => void;
+  handleSave: () => void;
+  handleLoad: (event: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>Toolbar</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="grid grid-cols-3 gap-2">
+            {toolbarTiles.map((tile, index) => (
+              <div
+                key={tile.type}
+                className="relative group"
+              >
+                <button
+                  className={`border w-full h-12 bg-cover bg-center ${activeButtonClass(selectedTile === tile.type)}`}
+                  style={{
+                    backgroundColor: tile.color,
+                    borderColor: tile.type === EMPTY_TILE.type ? "#eee" : tile.color,
+                    backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
+                  }}
+                  onClick={() => setSelectedTile(tile.type)}
+                >
+                  <span
+                    className={`
+                            ${getTileButtonTextColor(tile)}
+                            -mt-1 absolute inset-0 flex items-center justify-center text-xs font-bold
+                          `}
+                  >
+                    {tile.type}
+                  </span>
+                </button>
+                {tile.type !== EMPTY_TILE.type && (
+                  <EditToolbarTilePopover
+                    tile={tile}
+                    index={index}
+                    handleToolbarDeleteTile={handleToolbarDeleteTile}
+                    handleToolbarEditTile={handleToolbarEditTile}
+                    handleTextureUpload={handleTextureUpload}
+                  />
+                )}
+              </div>
+            ))}
+            <Button
+              onClick={handleToolbarAddTile}
+              className="h-12 w-12 p-0"
+            >
+              <Plus
+                height={24}
+                width={24}
+              />
+            </Button>
+          </div>
+          <div>
+            <Label htmlFor="map-columns">Map Columns: {mapSize.columns}</Label>
+            <Slider
+              id="map-columns"
+              min={5}
+              max={20}
+              step={1}
+              value={[mapSize.columns]}
+              onValueChange={(value) => handleMapSizeChange("columns", value[0])}
+            />
+          </div>
+          <div>
+            <Label htmlFor="map-rows">Map Rows: {mapSize.rows}</Label>{" "}
+            <Slider
+              id="map-rows"
+              min={5}
+              max={20}
+              step={1}
+              value={[mapSize.rows]}
+              onValueChange={(value) => handleMapSizeChange("rows", value[0])}
+            />
+          </div>
+          <div className="space-x-2">
+            <Button onClick={handleSave}>
+              <Save
+                width={16}
+                height={16}
+                className="mr-2"
+              />
+              Save
+            </Button>
+            <Button
+              asChild
+              className="cursor-pointer"
+            >
+              <label>
+                <FolderUpIcon
+                  width={16}
+                  height={16}
+                  className="mr-2"
+                />
+                Load
+                <Input
+                  type="file"
+                  className="hidden"
+                  onChange={handleLoad}
+                  accept=".json"
+                />
+              </label>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
