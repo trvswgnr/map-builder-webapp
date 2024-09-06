@@ -1,50 +1,120 @@
-# React + TypeScript + Vite
+# Map Builder Web Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
 
-Currently, two official plugins are available:
+Map Builder is a web-based application that allows users to create, edit, and
+visualize 2D maps using a grid-based system. It's built with React, TypeScript,
+and Vite, providing a fast and efficient development experience.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- Create multi-layered maps with customizable grid sizes
+- Add, edit, and delete tiles with various properties (type, color, texture)
+- Support for multiple layers with easy navigation
+- Real-time statistics and visualization of tile distribution
+- Save and load map configurations
+- Responsive design for various screen sizes
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Getting Started
 
-- Configure the top-level `parserOptions` property like this:
+### Prerequisites
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- Node.js (v14 or later)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+
+   ```
+   git clone https://github.com/your-username/map-builder-webapp.git
+   cd map-builder-webapp
+   ```
+
+2. Install dependencies:
+
+   ```
+   npm install
+   ```
+
+3. Start the development server:
+
+   ```
+   npm run dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+## Usage
+
+1. **Map Editor**: Click on tiles in the grid to paint them with the selected
+   tile type.
+2. **Toolbar**: Select tile types, adjust map size, and access save/load
+   functions.
+3. **Layers**: Add or remove layers to create depth in your maps.
+4. **Statistics**: View real-time statistics of tile distribution in your map.
+
+## Building for Production
+
+To create a production build, run:
+
+```
+npm run build
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+This will generate optimized files in the `dist` directory.
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## Technologies Used
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui components
+- Recharts for statistics visualization
+
+## Project Structure
+
 ```
+map-builder-webapp/
+├── src/
+│   ├── components/
+│   │   └── ui/
+│   ├── hooks/
+│   ├── lib/
+│   ├── main.tsx
+│   └── globals.css
+├── public/
+├── index.html
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
+```
+
+## Key Components
+
+The `MapBuilder` component is the main container for the application, managing
+the state and logic for the map editor.
+
+The `Editor` component handles the rendering and interaction with the map grid.
+
+The `Toolbar` component provides controls for tile selection, map size
+adjustment, and file operations.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgements
+
+- [Vite](https://vitejs.dev/) for the build tooling
+- [shadcn/ui](https://ui.shadcn.com/) for the UI components
+- [Recharts](https://recharts.org/) for the charting library
+- [Lucide](https://lucide.dev/) for the icons
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
