@@ -9,16 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+
 import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -506,7 +497,6 @@ export default function WorldBuilder() {
               </ul>
             </CardContent>
           </Card>
-          <Stats data={chartData} />
         </div>
       </div>
 
@@ -857,34 +847,6 @@ function Toolbar({
             </Button>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function Stats({ data }: { data: any }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Tile Distribution</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer
-          width="100%"
-          height={200}
-        >
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="type" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar
-              dataKey="count"
-              fill="#8884d8"
-            />
-          </BarChart>
-        </ResponsiveContainer>
       </CardContent>
     </Card>
   );
