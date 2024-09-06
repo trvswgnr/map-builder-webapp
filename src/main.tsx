@@ -8,7 +8,6 @@ import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Popover,
@@ -26,6 +25,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import { Range } from "react-range";
+import { Direction, ITrackBackground } from "react-range/lib/types";
 
 const EMPTY_TILE: Tile = { type: "empty", color: "transparent" };
 
@@ -291,6 +293,9 @@ function MapBuilder() {
     ([type, count]) => ({ type, count }),
   );
 
+  const [mapColumns, setMapColumns] = useState(mapSize.columns);
+  const [mapRows, setMapRows] = useState(mapSize.rows);
+
   const handleMapSizeChange = (
     dimension: "columns" | "rows",
     value: number,
@@ -347,7 +352,7 @@ function MapBuilder() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-5">Map Builder</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="flex flex-col md:grid md:grid-cols-3 gap-4">
         <div className="col-span-2">
           <Card>
             <CardHeader>
@@ -651,29 +656,29 @@ function MapBuilder() {
                   </Button>
                 </div>
                 <div>
-                  <Label htmlFor="map-columns">
-                    Map Columns: {mapSize.columns}
-                  </Label>
+                  <Label htmlFor="map-columns">Map Columns: {mapColumns}</Label>
                   <Slider
-                    id="map-columns"
+                    label="Adjust Map Columns"
                     min={5}
                     max={20}
                     step={1}
-                    value={[mapSize.columns]}
-                    onValueChange={(value) =>
-                      handleMapSizeChange("columns", value[0])
+                    values={[mapColumns]}
+                    onChange={(values) => setMapColumns(values[0])}
+                    onFinalChange={(values) =>
+                      handleMapSizeChange("columns", values[0])
                     }
                   />
                 </div>
                 <div>
-                  <Label htmlFor="map-rows">Map Rows: {mapSize.rows}</Label>{" "}
+                  <Label htmlFor="map-rows">Map Rows: {mapRows}</Label>{" "}
                   <Slider
-                    id="map-rows"
+                    label="Adjust Map Rows"
                     min={5}
                     max={20}
                     step={1}
-                    value={[mapSize.rows]}
-                    onValueChange={(value) =>
+                    values={[mapRows]}
+                    onChange={(values) => setMapRows(values[0])}
+                    onFinalChange={(value) =>
                       handleMapSizeChange("rows", value[0])
                     }
                   />
@@ -770,6 +775,124 @@ function MapBuilder() {
       <Toaster />
     </div>
   );
+}
+
+function Slider({
+  values,
+  min,
+  max,
+  step,
+  label,
+  onChange,
+  onFinalChange,
+}: {
+  values: number[];
+  min: number;
+  max: number;
+  step: number;
+  label: string;
+  onChange: (values: number[]) => void;
+  onFinalChange: (values: number[]) => void;
+}) {
+  return (
+    <div className="flex justify-center flex-wrap">
+      <Range
+        label={label}
+        values={values}
+        step={step}
+        min={min}
+        max={max}
+        rtl={false}
+        onChange={onChange}
+        onFinalChange={onFinalChange}
+        renderTrack={({ props, children }) => (
+          <div
+            onMouseDown={props.onMouseDown}
+            onTouchStart={props.onTouchStart}
+            style={{
+              ...props.style,
+              height: "36px",
+              display: "flex",
+              width: "100%",
+            }}
+          >
+            <div
+              ref={props.ref}
+              className="h-1 w-full"
+              style={{
+                background: getTrackBackground({
+                  values,
+                  colors: ["#000", "#ccc"],
+                  min,
+                  max,
+                  rtl: false,
+                }),
+                alignSelf: "center",
+              }}
+            >
+              {children}
+            </div>
+          </div>
+        )}
+        renderThumb={({ props, isDragged }) => (
+          <div
+            {...props}
+            key={props.key}
+            style={props.style}
+            className="outline-none"
+          >
+            <div
+              style={{
+                transition: "transform 0.1s",
+                transform: isDragged
+                  ? "scale(1.2) translateY(-5px)"
+                  : "scale(1)",
+              }}
+              className={c`
+              h-6 w-6 bg-white flex justify-center items-center border
+              ${isDragged ? "border-black" : "border-gray-300"}
+            `}
+            >
+              <div
+                className={c`
+                h-3 w-1
+                ${isDragged ? "bg-black" : "bg-gray-300"}
+              `}
+              />
+            </div>
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+function getTrackBackground({
+  values,
+  colors,
+  min,
+  max,
+  direction = Direction.Right,
+  rtl = false,
+}: ITrackBackground) {
+  if (rtl && direction === Direction.Right) {
+    direction = Direction.Left;
+  } else if (rtl && Direction.Left) {
+    direction = Direction.Right;
+  }
+  // sort values ascending
+  const progress = values
+    .slice(0)
+    .sort((a, b) => a - b)
+    .map((value) => ((value - min) / (max - min)) * 100);
+  const middle = progress.reduce(
+    (acc, point, index) =>
+      `${acc}, ${colors[index]} ${point}%, ${colors[index + 1]} ${point}%`,
+    "",
+  );
+  return `linear-gradient(${direction}, ${colors[0]} 0%${middle}, ${
+    colors[colors.length - 1]
+  } 100%)`;
 }
 
 function lazyLoadDistributionChart() {
