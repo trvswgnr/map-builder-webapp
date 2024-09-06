@@ -84,7 +84,7 @@ interface ChartData {
 function MapBuilder() {
   const errorToast = useErrorToast();
   const [mapSize, setMapSize] = useState<MapSize>({ columns: 10, rows: 10 });
-  const [selectedTile, setSelectedTile] = useState("empty");
+  const [selectedTile, setSelectedTile] = useState("wall");
   const initialLayer: MapLayer = Array(mapSize.rows)
     .fill(null)
     .map(() => Array(mapSize.columns).fill(EMPTY_TILE));
@@ -399,9 +399,10 @@ function MapBuilder() {
                 </Button>
               </div>
               <div
-                className="relative w-full"
+                className="relative w-full touch-action-none"
                 style={{
                   paddingBottom: `${(mapSize.rows / mapSize.columns) * 100}%`,
+                  cursor: "crosshair",
                 }}
               >
                 {layers.map((layer, layerIndex) => (
@@ -434,7 +435,7 @@ function MapBuilder() {
                         row.map((tile, colIndex) => (
                           <div
                             key={`${layerIndex}-${rowIndex}-${colIndex}`}
-                            className="border border-gray-300 dark:border-gray-900 bg-cover bg-center"
+                            className="tile border border-gray-300 hover:border-gray-500 hover:border-2 dark:border-gray-900 bg-cover bg-center"
                             style={{
                               backgroundColor: tile.color,
                               backgroundImage: tile.texture
@@ -450,6 +451,30 @@ function MapBuilder() {
                               handleEditorMouseEnter(rowIndex, colIndex)
                             }
                             onMouseUp={handleEditorMouseUp}
+                            onTouchStart={(e) => {
+                              e.preventDefault(); // Prevent window sliding
+                              layerIndex === currentLayer &&
+                                handleEditorMouseDown(rowIndex, colIndex);
+                            }}
+                            onTouchMove={(e) => {
+                              e.preventDefault(); // Prevent window sliding
+                              const touch = e.touches[0];
+                              const element = document.elementFromPoint(
+                                touch.clientX,
+                                touch.clientY
+                              ) as HTMLElement;
+                              const tileCoords = element.dataset.tileCoords;
+                              if (tileCoords) {
+                                const [touchRowIndex, touchColIndex] = tileCoords.split(',').map(Number);
+                                layerIndex === currentLayer &&
+                                  handleEditorMouseEnter(touchRowIndex, touchColIndex);
+                              }
+                            }}
+                            onTouchEnd={(e) => {
+                              e.preventDefault(); // Prevent window sliding
+                              handleEditorMouseUp();
+                            }}
+                            data-tile-coords={`${rowIndex},${colIndex}`}
                           ></div>
                         )),
                       )}
