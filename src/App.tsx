@@ -1,15 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "preact/compat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
-
 import {
   Dialog,
   DialogContent,
@@ -47,7 +59,9 @@ interface MapSize {
   rows: number;
 }
 
-type SaveDataTile = Omit<Tile, "texture"> & { texture: { filename: string } | undefined };
+type SaveDataTile = Omit<Tile, "texture"> & {
+  texture: { filename: string } | undefined;
+};
 type SaveDataLayer = SaveDataTile[][];
 interface SaveData {
   layers: SaveDataLayer[];
@@ -82,12 +96,16 @@ export default function WorldBuilder() {
   ]);
   const [currentLayer, setCurrentLayer] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [toolbarTiles, setToolbarTiles] = useState<Tile[]>(DEFAULT_TOOLBAR_TILES);
+  const [toolbarTiles, setToolbarTiles] = useState<Tile[]>(
+    DEFAULT_TOOLBAR_TILES,
+  );
   const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
 
   const handleTileClick = (row: number, col: number) => {
     const newLayers = [...layers];
-    const selectedTileData = toolbarTiles.find((tile) => tile.type === selectedTile);
+    const selectedTileData = toolbarTiles.find(
+      (tile) => tile.type === selectedTile,
+    );
     if (selectedTileData) {
       newLayers[currentLayer].tiles[row][col] = { ...selectedTileData };
     }
@@ -138,7 +156,9 @@ export default function WorldBuilder() {
         textureRefs: createTextureRefs(layers),
       },
     };
-    const blob = new Blob([JSON.stringify(saveData)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(saveData)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -165,19 +185,28 @@ export default function WorldBuilder() {
               type: tile.type,
               color: tile.color,
               texture: tile.texture
-                ? { filename: tile.texture.filename, data: saveData.settings.textureRefs[tile.texture.filename] }
+                ? {
+                    filename: tile.texture.filename,
+                    data: saveData.settings.textureRefs[tile.texture.filename],
+                  }
                 : undefined,
             })),
           ),
         })),
       );
-      setMapSize({ columns: saveData.settings.mapSize.columns, rows: saveData.settings.mapSize.rows });
+      setMapSize({
+        columns: saveData.settings.mapSize.columns,
+        rows: saveData.settings.mapSize.rows,
+      });
       setToolbarTiles(
         saveData.settings.toolbarTiles.map((tile) => ({
           type: tile.type,
           color: tile.color,
           texture: tile.texture
-            ? { filename: tile.texture.filename, data: saveData.settings.textureRefs[tile.texture.filename] }
+            ? {
+                filename: tile.texture.filename,
+                data: saveData.settings.textureRefs[tile.texture.filename],
+              }
             : undefined,
         })),
       );
@@ -202,7 +231,9 @@ export default function WorldBuilder() {
     setLayers((prevLayers) =>
       prevLayers.map((layer) => {
         const newTiles = layer.tiles.map((row) =>
-          row.map((tile) => (tile.type === updatedTile.type ? { ...tile, ...updatedTile } : tile)),
+          row.map((tile) =>
+            tile.type === updatedTile.type ? { ...tile, ...updatedTile } : tile,
+          ),
         );
         return { ...layer, tiles: newTiles };
       }),
@@ -222,14 +253,19 @@ export default function WorldBuilder() {
     setLayers((prevLayers) =>
       prevLayers.map((layer) => {
         const newTiles = layer.tiles.map((row) =>
-          row.map((tile) => (tile.type === toolbarTiles[index].type ? toolbarTiles[0] : tile)),
+          row.map((tile) =>
+            tile.type === toolbarTiles[index].type ? toolbarTiles[0] : tile,
+          ),
         );
         return { ...layer, tiles: newTiles };
       }),
     );
   };
 
-  function handleTextureUpload(index: number, event: React.ChangeEvent<HTMLInputElement>) {
+  function handleTextureUpload(
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
     const file = event.target.files?.[0];
 
     if (file) {
@@ -237,7 +273,9 @@ export default function WorldBuilder() {
       reader.onload = (e) => {
         const res = e.target?.result;
         if (typeof res !== "string") {
-          return void errorToast("Failed to load texture. e.target.result is not a string. Please try again.");
+          return void errorToast(
+            "Failed to load texture. e.target.result is not a string. Please try again.",
+          );
         }
         const texture = {
           filename: file.name,
@@ -257,9 +295,15 @@ export default function WorldBuilder() {
       return acc;
     }, {} as Record<string, number>);
 
-  const chartData = Object.entries(tileStats).map(([type, count]) => ({ type, count }));
+  const chartData = Object.entries(tileStats).map(([type, count]) => ({
+    type,
+    count,
+  }));
 
-  const handleMapSizeChange = (dimension: "columns" | "rows", value: number) => {
+  const handleMapSizeChange = (
+    dimension: "columns" | "rows",
+    value: number,
+  ) => {
     setMapSize((prev) => {
       const newSize = { ...prev, [dimension]: value };
       setLayers((prevLayers) =>
@@ -270,7 +314,10 @@ export default function WorldBuilder() {
               Array(newSize.columns)
                 .fill(null)
                 .map((_, colIndex) => {
-                  if (rowIndex < layer.tiles.length && colIndex < layer.tiles[0].length) {
+                  if (
+                    rowIndex < layer.tiles.length &&
+                    colIndex < layer.tiles[0].length
+                  ) {
                     return layer.tiles[rowIndex][colIndex];
                   }
                   return EMPTY_TILE;
@@ -340,7 +387,9 @@ export default function WorldBuilder() {
                   >
                     <Button
                       variant={currentLayer === index ? "secondary" : "outline"}
-                      className={`border ${activeButtonClass(currentLayer === index)}`}
+                      className={`border ${activeButtonClass(
+                        currentLayer === index,
+                      )}`}
                       onClick={() => setCurrentLayer(index)}
                     >
                       Layer {index + 1}
@@ -369,16 +418,27 @@ export default function WorldBuilder() {
               </div>
               <div
                 className="relative w-full"
-                style={{ paddingBottom: `${(mapSize.rows / mapSize.columns) * 100}%` }}
+                style={{
+                  paddingBottom: `${(mapSize.rows / mapSize.columns) * 100}%`,
+                }}
               >
                 {layers.map((layer, layerIndex) => (
                   <div
                     key={layerIndex}
                     className="absolute inset-0"
                     style={{
-                      zIndex: layerIndex <= currentLayer ? layers.length - layerIndex : 0,
-                      opacity: layerIndex === currentLayer ? 1 : layerIndex < currentLayer ? 0.3 : 0,
-                      pointerEvents: layerIndex === currentLayer ? "auto" : "none",
+                      zIndex:
+                        layerIndex <= currentLayer
+                          ? layers.length - layerIndex
+                          : 0,
+                      opacity:
+                        layerIndex === currentLayer
+                          ? 1
+                          : layerIndex < currentLayer
+                          ? 0.3
+                          : 0,
+                      pointerEvents:
+                        layerIndex === currentLayer ? "auto" : "none",
                     }}
                   >
                     <div
@@ -395,11 +455,17 @@ export default function WorldBuilder() {
                             className="border border-gray-300 dark:border-gray-900 bg-cover bg-center"
                             style={{
                               backgroundColor: tile.color,
-                              backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
+                              backgroundImage: tile.texture
+                                ? `url(${tile.texture.data})`
+                                : "none",
                             }}
-                            onMouseDown={() => layerIndex === currentLayer && handleEditorMouseDown(rowIndex, colIndex)}
+                            onMouseDown={() =>
+                              layerIndex === currentLayer &&
+                              handleEditorMouseDown(rowIndex, colIndex)
+                            }
                             onMouseEnter={() =>
-                              layerIndex === currentLayer && handleEditorMouseEnter(rowIndex, colIndex)
+                              layerIndex === currentLayer &&
+                              handleEditorMouseEnter(rowIndex, colIndex)
                             }
                             onMouseUp={handleEditorMouseUp}
                           ></div>
@@ -440,29 +506,7 @@ export default function WorldBuilder() {
               </ul>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Tile Distribution</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer
-                width="100%"
-                height={200}
-              >
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="type" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar
-                    dataKey="count"
-                    fill="#8884d8"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <Stats data={chartData} />
         </div>
       </div>
 
@@ -474,7 +518,8 @@ export default function WorldBuilder() {
           <DialogHeader>
             <DialogTitle>Delete Layer</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete Layer {layerToDelete !== null ? layerToDelete + 1 : ""}? This action
+              Are you sure you want to delete Layer{" "}
+              {layerToDelete !== null ? layerToDelete + 1 : ""}? This action
               cannot be undone.
             </DialogDescription>
           </DialogHeader>
@@ -558,7 +603,10 @@ function EditToolbarTilePopover({
   index: number;
   handleToolbarDeleteTile: (index: number) => void;
   handleToolbarEditTile: (index: number, tile: Tile) => void;
-  handleTextureUpload: (index: number, event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleTextureUpload: (
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
 }) {
   return (
     <Popover>
@@ -690,7 +738,10 @@ function Toolbar({
   handleToolbarAddTile: () => void;
   handleToolbarDeleteTile: (index: number) => void;
   handleToolbarEditTile: (index: number, tile: Tile) => void;
-  handleTextureUpload: (index: number, event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleTextureUpload: (
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => void;
   handleMapSizeChange: (dimension: "columns" | "rows", value: number) => void;
   handleSave: () => void;
   handleLoad: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -709,11 +760,16 @@ function Toolbar({
                 className="relative group"
               >
                 <button
-                  className={`border w-full h-12 bg-cover bg-center ${activeButtonClass(selectedTile === tile.type)}`}
+                  className={`border w-full h-12 bg-cover bg-center ${activeButtonClass(
+                    selectedTile === tile.type,
+                  )}`}
                   style={{
                     backgroundColor: tile.color,
-                    borderColor: tile.type === EMPTY_TILE.type ? "#eee" : tile.color,
-                    backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
+                    borderColor:
+                      tile.type === EMPTY_TILE.type ? "#eee" : tile.color,
+                    backgroundImage: tile.texture
+                      ? `url(${tile.texture.data})`
+                      : "none",
                   }}
                   onClick={() => setSelectedTile(tile.type)}
                 >
@@ -755,7 +811,9 @@ function Toolbar({
               max={20}
               step={1}
               value={[mapSize.columns]}
-              onValueChange={(value) => handleMapSizeChange("columns", value[0])}
+              onValueChange={(value) =>
+                handleMapSizeChange("columns", value[0])
+              }
             />
           </div>
           <div>
@@ -799,6 +857,34 @@ function Toolbar({
             </Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function Stats({ data }: { data: any }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Tile Distribution</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResponsiveContainer
+          width="100%"
+          height={200}
+        >
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="type" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar
+              dataKey="count"
+              fill="#8884d8"
+            />
+          </BarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );
