@@ -311,7 +311,7 @@ function MapBuilder() {
                   return EMPTY_TILE;
                 }),
             );
-          return [...layer, ...newTiles];
+          return newTiles;
         }),
       );
       return newSize;
@@ -339,16 +339,10 @@ function MapBuilder() {
   };
 
   useEffect(() => {
-    const handleGlobalMouseUp = () => {
-      setIsDragging(false);
-    };
-
+    const handleGlobalMouseUp = () => setIsDragging(false);
     window.addEventListener("mouseup", handleGlobalMouseUp);
-
-    return () => {
-      window.removeEventListener("mouseup", handleGlobalMouseUp);
-    };
-  }, []);
+    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+  }, [mapSize]);
 
   return (
     <div className="container mx-auto p-4">
@@ -461,13 +455,17 @@ function MapBuilder() {
                               const touch = e.touches[0];
                               const element = document.elementFromPoint(
                                 touch.clientX,
-                                touch.clientY
+                                touch.clientY,
                               ) as HTMLElement;
                               const tileCoords = element.dataset.tileCoords;
                               if (tileCoords) {
-                                const [touchRowIndex, touchColIndex] = tileCoords.split(',').map(Number);
+                                const [touchRowIndex, touchColIndex] =
+                                  tileCoords.split(",").map(Number);
                                 layerIndex === currentLayer &&
-                                  handleEditorMouseEnter(touchRowIndex, touchColIndex);
+                                  handleEditorMouseEnter(
+                                    touchRowIndex,
+                                    touchColIndex,
+                                  );
                               }
                             }}
                             onTouchEnd={(e) => {
