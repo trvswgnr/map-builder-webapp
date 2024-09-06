@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/compat";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Tile {
   type: string;
@@ -497,6 +497,7 @@ export default function WorldBuilder() {
               </ul>
             </CardContent>
           </Card>
+          <Stats data={chartData} />
         </div>
       </div>
 
@@ -847,6 +848,62 @@ function Toolbar({
             </Button>
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+type ChartData = {
+  type: string;
+  count: number;
+};
+
+const getAsyncStats = () =>
+  lazy(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const {
+      BarChart,
+      Bar,
+      XAxis,
+      YAxis,
+      CartesianGrid,
+      Tooltip,
+      Legend,
+      ResponsiveContainer,
+    } = await import("recharts");
+    return {
+      default: ({ data }: { data: ChartData[] }) => (
+        <ResponsiveContainer
+          width="100%"
+          aspect={16 / 9}
+        >
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="type" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar
+              dataKey="count"
+              fill="#8884d8"
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      ),
+    };
+  });
+
+function Stats({ data }: { data: ChartData[] }) {
+  const AsyncStats = getAsyncStats();
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Tile Distribution</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Suspense fallback={<Skeleton className="w-full aspect-video" />}>
+          <AsyncStats data={data} />
+        </Suspense>
       </CardContent>
     </Card>
   );
