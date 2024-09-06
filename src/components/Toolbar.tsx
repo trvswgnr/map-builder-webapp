@@ -14,7 +14,6 @@ import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Slider } from "@/components/Slider";
 import { Tile } from "@/lib/types";
 import {
-  activeClasses,
   EMPTY_TILE,
   getRandomColor,
   getTileButtonTextColor,
@@ -26,12 +25,10 @@ export const Toolbar: React.FC = () => {
   const {
     mapSize,
     selectedTile,
-    setSelectedTile,
     toolbarTiles,
-    setToolbarTiles,
+    dispatch,
     handleSave,
     handleLoad,
-    handleMapSizeChange,
   } = useMapBuilder();
   const [mapColumns, setMapColumns] = useState(mapSize.columns);
   const [mapRows, setMapRows] = useState(mapSize.rows);
@@ -41,21 +38,24 @@ export const Toolbar: React.FC = () => {
       type: `NewTile${toolbarTiles.length + 1}`,
       color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
     };
-    setToolbarTiles([...toolbarTiles, newTile]);
+    dispatch({
+      type: "SET_TOOLBAR_TILES",
+      payload: [...toolbarTiles, newTile],
+    });
   };
 
   const handleToolbarEditTile = (index: number, updatedTile: Tile) => {
     const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
-    setToolbarTiles(newTiles);
+    dispatch({ type: "SET_TOOLBAR_TILES", payload: newTiles });
   };
 
   const handleToolbarDeleteTile = (index: number) => {
     const newTiles = toolbarTiles.filter((_, i) => i !== index);
-    setToolbarTiles(newTiles);
+    dispatch({ type: "SET_TOOLBAR_TILES", payload: newTiles });
 
     if (selectedTile === toolbarTiles[index].type) {
-      setSelectedTile("empty");
+      dispatch({ type: "SET_SELECTED_TILE", payload: "empty" });
     }
   };
 
@@ -98,9 +98,9 @@ export const Toolbar: React.FC = () => {
                 className="relative group"
               >
                 <button
-                  className={`border w-full h-12 bg-cover bg-center ${activeClasses(
-                    selectedTile === tile.type,
-                  )}`}
+                  className={`border w-full h-12 bg-cover bg-center ${
+                    selectedTile === tile.type ? "ring-2 ring-blue-500" : ""
+                  }`}
                   style={{
                     backgroundColor: tile.color,
                     borderColor:
@@ -109,7 +109,9 @@ export const Toolbar: React.FC = () => {
                       ? `url(${tile.texture.data})`
                       : "none",
                   }}
-                  onClick={() => setSelectedTile(tile.type)}
+                  onClick={() =>
+                    dispatch({ type: "SET_SELECTED_TILE", payload: tile.type })
+                  }
                 >
                   <span
                     className={`${getTileButtonTextColor(
@@ -253,7 +255,10 @@ export const Toolbar: React.FC = () => {
               values={[mapColumns]}
               onChange={(values) => setMapColumns(values[0])}
               onFinalChange={(values) =>
-                handleMapSizeChange("columns", values[0])
+                dispatch({
+                  type: "HANDLE_MAP_SIZE_CHANGE",
+                  payload: { dimension: "columns", value: values[0] },
+                })
               }
             />
           </div>
@@ -266,7 +271,12 @@ export const Toolbar: React.FC = () => {
               step={1}
               values={[mapRows]}
               onChange={(values) => setMapRows(values[0])}
-              onFinalChange={(value) => handleMapSizeChange("rows", value[0])}
+              onFinalChange={(value) =>
+                dispatch({
+                  type: "HANDLE_MAP_SIZE_CHANGE",
+                  payload: { dimension: "rows", value: value[0] },
+                })
+              }
             />
           </div>
           <div className="space-x-2">

@@ -1,10 +1,10 @@
 // components/TileDistribution.tsx
-import React, { Suspense, lazy } from 'react';
-import { useMapBuilder } from '../hooks/MapBuilderContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import React, { Suspense, lazy } from "react";
+import { useMapBuilder } from "../hooks/MapBuilderContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const DistributionChart = lazy(() => import('./DistributionChart'));
+const DistributionChart = lazy(() => import("./DistributionChart"));
 
 export const TileDistribution: React.FC = () => {
   const { layers } = useMapBuilder();
@@ -16,7 +16,10 @@ export const TileDistribution: React.FC = () => {
       return acc;
     }, {} as Record<string, number>);
 
-  const chartData = Object.entries(tileStats).map(([type, count]) => ({ type, count }));
+  const chartData = Object.entries(tileStats).map(([type, count]) => ({
+    type,
+    count,
+  }));
 
   return (
     <Card>

@@ -8,15 +8,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { DeleteLayerModal } from "@/components/DeleteLayerModal";
 
 export const Editor: React.FC = () => {
-  const {
-    layers,
-    currentLayer,
-    setCurrentLayer,
-    mapSize,
-    handleTileClick,
-    addLayer,
-    deleteLayer,
-  } = useMapBuilder();
+  const { layers, currentLayer, mapSize, dispatch } = useMapBuilder();
   const [isDragging, setIsDragging] = useState(false);
   const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
 
@@ -24,19 +16,19 @@ export const Editor: React.FC = () => {
   const closeDeleteLayerModal = () => setLayerToDelete(null);
   const confirmDeleteLayer = () => {
     if (layerToDelete !== null) {
-      deleteLayer(layerToDelete);
+      dispatch({ type: "DELETE_LAYER", payload: layerToDelete });
     }
     closeDeleteLayerModal();
   };
 
   const handleEditorMouseDown = (row: number, col: number) => {
     setIsDragging(true);
-    handleTileClick(row, col);
+    dispatch({ type: "HANDLE_TILE_CLICK", payload: { row, col } });
   };
 
   const handleEditorMouseEnter = (row: number, col: number) => {
     if (isDragging) {
-      handleTileClick(row, col);
+      dispatch({ type: "HANDLE_TILE_CLICK", payload: { row, col } });
     }
   };
 
@@ -65,7 +57,9 @@ export const Editor: React.FC = () => {
               <Button
                 variant={currentLayer === index ? "secondary" : "outline"}
                 className={`border ${activeClasses(currentLayer === index)}`}
-                onClick={() => setCurrentLayer(index)}
+                onClick={() =>
+                  dispatch({ type: "SET_CURRENT_LAYER", payload: index })
+                }
               >
                 Layer {index + 1}
               </Button>
@@ -82,7 +76,7 @@ export const Editor: React.FC = () => {
             </div>
           ))}
           <Button
-            onClick={addLayer}
+            onClick={() => dispatch({ type: "ADD_LAYER" })}
             className="py-0 px-2"
           >
             <Plus

@@ -4,7 +4,7 @@ import { useMapBuilder } from "../hooks/MapBuilderContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const Statistics: React.FC = () => {
-  const { layers } = useMapBuilder();
+  const { layers, mapSize } = useMapBuilder();
 
   const tileStats = layers
     .flatMap((layer) => layer.flat())
@@ -13,8 +13,6 @@ export const Statistics: React.FC = () => {
       return acc;
     }, {} as Record<string, number>);
 
-  const { mapSize } = useMapBuilder();
-
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -22,8 +20,10 @@ export const Statistics: React.FC = () => {
       </CardHeader>
       <CardContent>
         <ul>
-          size: {mapSize.columns}x{mapSize.rows} ={" "}
-          {mapSize.columns * mapSize.rows} tiles
+          <li>
+            Size: {mapSize.columns}x{mapSize.rows} ={" "}
+            {mapSize.columns * mapSize.rows} tiles
+          </li>
           {Object.entries(tileStats).map(([type, count]) => (
             <li key={type}>
               {type}: {count}
