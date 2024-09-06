@@ -22,7 +22,7 @@ type MapBuilderContextType = {
   handleTileClick: (row: number, col: number) => void;
   handleSave: () => void;
   handleLoad: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleMapSizeChange: (dimension: 'columns' | 'rows', value: number) => void;
+  handleMapSizeChange: (dimension: "columns" | "rows", value: number) => void;
   addLayer: () => void;
   deleteLayer: (index: number) => void;
 };
@@ -184,30 +184,32 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
     [layers],
   );
 
-  const handleMapSizeChange = useCallback((dimension: 'columns' | 'rows', value: number) => {
-    setMapSize((prev) => {
-      const newSize = { ...prev, [dimension]: value };
-      setLayers((prevLayers) =>
-        prevLayers.map((layer) => {
-          const newTiles = Array(newSize.rows)
-            .fill(null)
-            .map((_, rowIndex) =>
-              Array(newSize.columns)
-                .fill(null)
-                .map((_, colIndex) => {
-                  if (rowIndex < layer.length && colIndex < layer[0].length) {
-                    return layer[rowIndex][colIndex];
-                  }
-                  return EMPTY_TILE;
-                }),
-            );
-          return newTiles;
-        }),
-      );
-      return newSize;
-    });
-  }, []);
-
+  const handleMapSizeChange = useCallback(
+    (dimension: "columns" | "rows", value: number) => {
+      setMapSize((prev) => {
+        const newSize = { ...prev, [dimension]: value };
+        setLayers((prevLayers) =>
+          prevLayers.map((layer) => {
+            const newTiles = Array(newSize.rows)
+              .fill(null)
+              .map((_, rowIndex) =>
+                Array(newSize.columns)
+                  .fill(null)
+                  .map((_, colIndex) => {
+                    if (rowIndex < layer.length && colIndex < layer[0].length) {
+                      return layer[rowIndex][colIndex];
+                    }
+                    return EMPTY_TILE;
+                  }),
+              );
+            return newTiles;
+          }),
+        );
+        return newSize;
+      });
+    },
+    [],
+  );
 
   return (
     <MapBuilderContext.Provider
