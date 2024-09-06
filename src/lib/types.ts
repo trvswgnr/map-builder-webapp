@@ -1,0 +1,38 @@
+// lib/types.ts
+export type Tile = {
+  readonly type: string;
+  readonly color: string;
+  readonly texture?: {
+    readonly filename: string;
+    readonly data: string;
+  };
+};
+
+export type MapLayer = readonly Tile[][];
+
+export type MapSize = {
+  readonly columns: number;
+  readonly rows: number;
+};
+
+export type SaveDataTile = Readonly<
+  Omit<Tile, "texture"> & {
+    readonly texture: { readonly filename: string } | undefined;
+  }
+>;
+
+export type SaveDataLayer = readonly SaveDataTile[][];
+
+export type SaveData = {
+  readonly layers: readonly SaveDataLayer[];
+  readonly settings: {
+    readonly mapSize: MapSize;
+    readonly toolbarTiles: readonly SaveDataTile[];
+    readonly textureRefs: Readonly<Record<string, string>>;
+  };
+};
+
+export type ChartData = {
+  readonly type: string;
+  readonly count: number;
+};
