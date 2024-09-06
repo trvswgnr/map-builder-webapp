@@ -47,41 +47,43 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 );
 
-interface Tile {
-  type: string;
-  color: string;
-  texture?: {
-    filename: string;
-    data: string;
+type Tile = {
+  readonly type: string;
+  readonly color: string;
+  readonly texture?: {
+    readonly filename: string;
+    readonly data: string;
   };
-}
-
-type MapLayer = Tile[][];
-
-interface MapSize {
-  columns: number;
-  rows: number;
-}
-
-type SaveDataTile = Omit<Tile, "texture"> & {
-  texture: { filename: string } | undefined;
 };
 
-type SaveDataLayer = SaveDataTile[][];
+type MapLayer = readonly Tile[][];
 
-interface SaveData {
-  layers: SaveDataLayer[];
-  settings: {
-    mapSize: MapSize;
-    toolbarTiles: SaveDataTile[];
-    textureRefs: Record<string, string>;
+type MapSize = {
+  readonly columns: number;
+  readonly rows: number;
+};
+
+type SaveDataTile = Readonly<
+  Omit<Tile, "texture"> & {
+    readonly texture: { readonly filename: string } | undefined;
+  }
+>;
+
+type SaveDataLayer = readonly SaveDataTile[][];
+
+type SaveData = {
+  readonly layers: readonly SaveDataLayer[];
+  readonly settings: {
+    readonly mapSize: MapSize;
+    readonly toolbarTiles: readonly SaveDataTile[];
+    readonly textureRefs: Readonly<Record<string, string>>;
   };
-}
+};
 
-interface ChartData {
-  type: string;
-  count: number;
-}
+type ChartData = {
+  readonly type: string;
+  readonly count: number;
+};
 
 function MapBuilder() {
   const errorToast = useErrorToast();
@@ -246,14 +248,13 @@ function MapBuilder() {
 
     // update the map to replace deleted tile with 'empty'
     setLayers((prevLayers) =>
-      prevLayers.map((layer) => {
-        const newTiles = layer.map((row) =>
+      prevLayers.map((layer) =>
+        layer.map((row) =>
           row.map((tile) =>
-            tile.type === toolbarTiles[index].type ? toolbarTiles[0] : tile,
+            tile.type === toolbarTiles[index].type ? EMPTY_TILE : tile,
           ),
-        );
-        return { ...layer, tiles: newTiles };
-      }),
+        ),
+      ),
     );
   };
 
