@@ -15,10 +15,18 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
+    "allowUnusedLabels": false,
+    "allowUnreachableCode": false,
+    "strictNullChecks": true,
+    "exactOptionalPropertyTypes": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
+
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]

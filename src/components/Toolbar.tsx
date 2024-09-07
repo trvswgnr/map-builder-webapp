@@ -19,6 +19,7 @@ import {
   getTileButtonTextColor,
 } from "@/lib/utils";
 import { useErrorToast } from "@/hooks/useErrorToast";
+import { Action } from "@/hooks/mapBuilderReducer";
 
 export const Toolbar: React.FC = () => {
   const errorToast = useErrorToast();
@@ -39,7 +40,7 @@ export const Toolbar: React.FC = () => {
       color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
     };
     dispatch({
-      type: "SET_TOOLBAR_TILES",
+      type: Action.SET_TOOLBAR_TILES,
       payload: [...toolbarTiles, newTile],
     });
   };
@@ -47,15 +48,18 @@ export const Toolbar: React.FC = () => {
   const handleToolbarEditTile = (index: number, updatedTile: MapTile) => {
     const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
-    dispatch({ type: "SET_TOOLBAR_TILES", payload: newTiles });
+    dispatch({ type: Action.SET_TOOLBAR_TILES, payload: newTiles });
   };
 
   const handleToolbarDeleteTile = (index: number) => {
     const newTiles = toolbarTiles.filter((_, i) => i !== index);
-    dispatch({ type: "SET_TOOLBAR_TILES", payload: newTiles });
-
-    if (selectedTile === toolbarTiles[index].type) {
-      dispatch({ type: "SET_SELECTED_TILE", payload: "empty" });
+    dispatch({ type: Action.SET_TOOLBAR_TILES, payload: newTiles });
+    const tileAtIndex = toolbarTiles[index];
+    if (tileAtIndex === undefined) {
+      return void errorToast("No tile at index");
+    }
+    if (selectedTile === tileAtIndex.type) {
+      dispatch({ type: Action.SET_SELECTED_TILE, payload: "empty" });
     }
   };
 
@@ -65,23 +69,26 @@ export const Toolbar: React.FC = () => {
   ) => {
     const file = event.target.files?.[0];
 
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const res = e.target?.result;
-        if (typeof res !== "string") {
-          return void errorToast(
-            "Failed to load texture. e.target.result is not a string. Please try again.",
-          );
-        }
-        const texture = {
-          filename: file.name,
-          data: res,
-        };
-        handleToolbarEditTile(index, { ...toolbarTiles[index], texture });
-      };
-      reader.readAsDataURL(file);
+    if (!file) {
+      return void errorToast("No file selected");
     }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const res = e.target?.result;
+      if (typeof res !== "string") {
+        return void errorToast("Failed to load texture.");
+      }
+      const texture = {
+        filename: file.name,
+        data: res,
+      };
+      const tileAtIndex = toolbarTiles[index];
+      if (tileAtIndex === undefined) {
+        return void errorToast("No tile at index");
+      }
+      handleToolbarEditTile(index, { ...tileAtIndex, texture });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -110,7 +117,10 @@ export const Toolbar: React.FC = () => {
                       : "none",
                   }}
                   onClick={() =>
-                    dispatch({ type: "SET_SELECTED_TILE", payload: tile.type })
+                    dispatch({
+                      type: Action.SET_SELECTED_TILE,
+                      payload: tile.type,
+                    })
                   }
                 >
                   <span
@@ -253,11 +263,14 @@ export const Toolbar: React.FC = () => {
               max={20}
               step={1}
               values={[mapColumns]}
-              onChange={(values) => setMapColumns(values[0])}
-              onFinalChange={(values) =>
+              onChange={([value]) =>
+                value !== undefined && setMapColumns(value)
+              }
+              onFinalChange={([value]) =>
+                value !== undefined &&
                 dispatch({
-                  type: "HANDLE_MAP_SIZE_CHANGE",
-                  payload: { dimension: "columns", value: values[0] },
+                  type: Action.HANDLE_MAP_SIZE_CHANGE,
+                  payload: { dimension: "columns", value },
                 })
               }
             />
@@ -270,11 +283,12 @@ export const Toolbar: React.FC = () => {
               max={20}
               step={1}
               values={[mapRows]}
-              onChange={(values) => setMapRows(values[0])}
-              onFinalChange={(value) =>
+              onChange={([value]) => value !== undefined && setMapRows(value)}
+              onFinalChange={([value]) =>
+                value !== undefined &&
                 dispatch({
-                  type: "HANDLE_MAP_SIZE_CHANGE",
-                  payload: { dimension: "rows", value: value[0] },
+                  type: Action.HANDLE_MAP_SIZE_CHANGE,
+                  payload: { dimension: "rows", value },
                 })
               }
             />

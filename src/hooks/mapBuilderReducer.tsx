@@ -1,6 +1,6 @@
 // hooks/mapBuilderReducer.tsx
 import { MapSize, MapLayer, MapTile, SaveData, Dimension } from "@/lib/types";
-import { EMPTY_TILE, DEFAULT_TOOLBAR_TILES } from "@/lib/utils";
+import { EMPTY_TILE, DEFAULT_TOOLBAR_TILES, NEVER } from "@/lib/utils";
 
 // State type
 export interface MapBuilderState {
@@ -25,7 +25,7 @@ export enum Action {
 }
 
 // prettier-ignore
-type Actions =
+export type Actions =
   | Action.Event<Action.SET_MAP_SIZE, MapSize>
   | Action.Event<Action.SET_SELECTED_TILE, string>
   | Action.Event<Action.SET_LAYERS, MapLayer[]>
@@ -49,7 +49,7 @@ export const initialState: MapBuilderState = {
   selectedTile: "wall",
   layers: [
     Array<MapTile[]>(10)
-      .fill(null!)
+      .fill(NEVER)
       .map(() => Array<MapTile>(10).fill(EMPTY_TILE)),
   ],
   currentLayer: 0,
@@ -78,12 +78,12 @@ export function mapBuilderReducer(
       const selectedTileData = state.toolbarTiles.find(
         (tile) => tile.type === state.selectedTile,
       );
-      if (selectedTileData) {
-        newLayers[state.currentLayer] = newLayers[state.currentLayer].map(
-          (r, i) =>
-            i === row
-              ? r.map((t, j) => (j === col ? { ...selectedTileData } : t))
-              : r,
+      const layer = newLayers[state.currentLayer];
+      if (layer && selectedTileData) {
+        newLayers[state.currentLayer] = layer.map((r, i) =>
+          i === row
+            ? r.map((t, j) => (j === col ? { ...selectedTileData } : t))
+            : r,
         );
       }
       return { ...state, layers: newLayers };
@@ -117,8 +117,16 @@ export function mapBuilderReducer(
             Array(newSize.columns)
               .fill(null)
               .map((_, colIndex) => {
-                if (rowIndex < layer.length && colIndex < layer[0].length) {
-                  return layer[rowIndex][colIndex];
+                if (
+                  rowIndex < layer.length &&
+                  colIndex < (layer[0]?.length ?? -Infinity)
+                ) {
+                  const row = layer[rowIndex];
+                  if (!row) {
+                    return EMPTY_TILE;
+                  }
+                  const tile = row[colIndex];
+                  return tile ?? EMPTY_TILE;
                 }
                 return EMPTY_TILE;
               }),
@@ -138,7 +146,7 @@ export function mapBuilderReducer(
               texture: tile.texture
                 ? {
                     filename: tile.texture.filename,
-                    data: settings.textureRefs[tile.texture.filename],
+                    data: settings.textureRefs[tile.texture.filename] ?? "",
                   }
                 : undefined,
             })),
@@ -151,7 +159,7 @@ export function mapBuilderReducer(
           texture: tile.texture
             ? {
                 filename: tile.texture.filename,
-                data: settings.textureRefs[tile.texture.filename],
+                data: settings.textureRefs[tile.texture.filename] ?? "",
               }
             : undefined,
         })),

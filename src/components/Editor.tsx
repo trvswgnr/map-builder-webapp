@@ -3,11 +3,14 @@ import React, { useState, useEffect } from "react";
 import { useMapBuilder } from "@/hooks/MapBuilderContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { activeClasses } from "@/lib/utils";
+import { activeClasses, NEVER } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { DeleteLayerModal } from "@/components/DeleteLayerModal";
+import { useErrorToast } from "@/hooks/useErrorToast";
+import { Action } from "@/hooks/mapBuilderReducer";
 
 export const Editor: React.FC = () => {
+  const errorToast = useErrorToast();
   const { layers, currentLayer, mapSize, dispatch } = useMapBuilder();
   const [isDragging, setIsDragging] = useState(false);
   const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
@@ -16,19 +19,19 @@ export const Editor: React.FC = () => {
   const closeDeleteLayerModal = () => setLayerToDelete(null);
   const confirmDeleteLayer = () => {
     if (layerToDelete !== null) {
-      dispatch({ type: "DELETE_LAYER", payload: layerToDelete });
+      dispatch({ type: Action.DELETE_LAYER, payload: layerToDelete });
     }
     closeDeleteLayerModal();
   };
 
   const handleEditorMouseDown = (row: number, col: number) => {
     setIsDragging(true);
-    dispatch({ type: "HANDLE_TILE_CLICK", payload: { row, col } });
+    dispatch({ type: Action.HANDLE_TILE_CLICK, payload: { row, col } });
   };
 
   const handleEditorMouseEnter = (row: number, col: number) => {
     if (isDragging) {
-      dispatch({ type: "HANDLE_TILE_CLICK", payload: { row, col } });
+      dispatch({ type: Action.HANDLE_TILE_CLICK, payload: { row, col } });
     }
   };
 
@@ -58,7 +61,7 @@ export const Editor: React.FC = () => {
                 variant={currentLayer === index ? "secondary" : "outline"}
                 className={`border ${activeClasses(currentLayer === index)}`}
                 onClick={() =>
-                  dispatch({ type: "SET_CURRENT_LAYER", payload: index })
+                  dispatch({ type: Action.SET_CURRENT_LAYER, payload: index })
                 }
               >
                 Layer {index + 1}
@@ -76,7 +79,7 @@ export const Editor: React.FC = () => {
             </div>
           ))}
           <Button
-            onClick={() => dispatch({ type: "ADD_LAYER" })}
+            onClick={() => dispatch({ type: Action.ADD_LAYER, payload: NEVER })}
             className="py-0 px-2"
           >
             <Plus
@@ -143,21 +146,28 @@ export const Editor: React.FC = () => {
                       onTouchMove={(e) => {
                         e.preventDefault();
                         const touch = e.touches[0];
+                        if (!touch) {
+                          errorToast("Touch event not found");
+                          return;
+                        }
                         const element = document.elementFromPoint(
                           touch.clientX,
                           touch.clientY,
                         ) as HTMLElement;
-                        const tileCoords = element.dataset.tileCoords;
-                        if (tileCoords) {
-                          const [touchRowIndex, touchColIndex] = tileCoords
-                            .split(",")
-                            .map(Number);
-                          layerIndex === currentLayer &&
-                            handleEditorMouseEnter(
-                              touchRowIndex,
-                              touchColIndex,
-                            );
+                        const [touchRowIndex, touchColIndex] = (
+                          element.dataset.tileCoords ?? ""
+                        )
+                          .split(",")
+                          .map(Number);
+                        if (
+                          touchRowIndex === undefined ||
+                          touchColIndex === undefined
+                        ) {
+                          errorToast("No tile coords found");
+                          return;
                         }
+                        layerIndex === currentLayer &&
+                          handleEditorMouseEnter(touchRowIndex, touchColIndex);
                       }}
                       onTouchEnd={(e) => {
                         e.preventDefault();
