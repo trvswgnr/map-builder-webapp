@@ -1,7 +1,7 @@
 // MapBuilder.tsx
 import { Toaster } from "@/components/ui/toaster";
 import { MapBuilderProvider } from "@/hooks/MapBuilderContext";
-import { Editor } from "@/components/Editor";
+import Editor from "@/components/Editor";
 import { Toolbar } from "@/components/Toolbar";
 import { Statistics } from "@/components/Statistics";
 import { TileDistribution } from "@/components/TileDistribution";

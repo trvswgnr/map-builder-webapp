@@ -1,13 +1,13 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { MapTile, MapLayer } from "@/lib/types";
+import { Tile, MapLayer } from "@/lib/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const EMPTY_TILE: MapTile = { type: "empty", color: "transparent" };
-export const DEFAULT_TOOLBAR_TILES: MapTile[] = [
+export const EMPTY_TILE: Tile = { type: "empty", color: "transparent" };
+export const DEFAULT_TOOLBAR_TILES: Tile[] = [
   EMPTY_TILE,
   { type: "wall", color: "#1f2937" },
   { type: "start", color: "#41e5e5" },
@@ -15,7 +15,7 @@ export const DEFAULT_TOOLBAR_TILES: MapTile[] = [
   { type: "enemy", color: "#ef4444" },
 ];
 
-export function getTileButtonTextColor(tile: MapTile): string {
+export function getTileButtonTextColor(tile: Tile): string {
   if (tile.texture) {
     return "text-white [text-shadow:_2px_2px_0px_rgb(0_0_0_/_0.8)]";
   }

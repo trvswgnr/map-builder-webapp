@@ -1,5 +1,5 @@
 // hooks/mapBuilderReducer.tsx
-import { MapSize, MapLayer, MapTile, SaveData, Dimension } from "@/lib/types";
+import { MapSize, MapLayer, Tile, SaveData, Dimension } from "@/lib/types";
 import { EMPTY_TILE, DEFAULT_TOOLBAR_TILES, NEVER } from "@/lib/utils";
 
 // State type
@@ -8,7 +8,7 @@ export interface MapBuilderState {
   selectedTile: string;
   layers: MapLayer[];
   currentLayer: number;
-  toolbarTiles: MapTile[];
+  toolbarTiles: Tile[];
 }
 
 export enum Action {
@@ -30,7 +30,7 @@ export type Actions =
   | Action.Event<Action.SET_SELECTED_TILE, string>
   | Action.Event<Action.SET_LAYERS, MapLayer[]>
   | Action.Event<Action.SET_CURRENT_LAYER, number>
-  | Action.Event<Action.SET_TOOLBAR_TILES, MapTile[]>
+  | Action.Event<Action.SET_TOOLBAR_TILES, Tile[]>
   | Action.Event<Action.HANDLE_TILE_CLICK, { row: number; col: number }>
   | Action.Event<Action.ADD_LAYER, never>
   | Action.Event<Action.DELETE_LAYER, number>
@@ -48,9 +48,9 @@ export const initialState: MapBuilderState = {
   mapSize: { columns: 10, rows: 10 },
   selectedTile: "wall",
   layers: [
-    Array<MapTile[]>(10)
+    Array<Tile[]>(10)
       .fill(NEVER)
-      .map(() => Array<MapTile>(10).fill(EMPTY_TILE)),
+      .map(() => Array<Tile>(10).fill(EMPTY_TILE)),
   ],
   currentLayer: 0,
   toolbarTiles: DEFAULT_TOOLBAR_TILES,
