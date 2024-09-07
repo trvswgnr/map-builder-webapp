@@ -2,6 +2,7 @@ import { Maybe } from "@/lib/maybe";
 import { createContext, useContext } from "react";
 
 export type Theme = "dark" | "light" | "system";
+export type ResolvedTheme = "dark" | "light";
 
 export type ThemeProviderProps = {
   children: React.ReactNode;
@@ -10,12 +11,12 @@ export type ThemeProviderProps = {
 };
 
 export type ThemeProviderState = {
-  theme: Theme;
+  theme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: "system",
+  theme: "light",
   setTheme: () => null,
 };
 

@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const idGenerator = (function* () {
-  let id = 4;
+  let id = 0;
   while (true) {
     yield id++;
   }

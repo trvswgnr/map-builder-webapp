@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { activeClasses, NEVER } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
-import { DeleteLayerModal } from "@/components/DeleteLayerModal";
+import { ConfirmDeleteModal } from "@/components/DeleteLayerModal";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { MapBuilderAction } from "@/lib/mapBuilderReducer";
 import { MapTile } from "@/lib/types";
@@ -28,12 +28,18 @@ function Editor() {
 
   const handleEditorMouseDown = (row: number, col: number) => {
     setIsDragging(true);
-    dispatch({ type: MapBuilderAction.HANDLE_TILE_CLICK, payload: { row, col } });
+    dispatch({
+      type: MapBuilderAction.HANDLE_TILE_CLICK,
+      payload: { row, col },
+    });
   };
 
   const handleEditorMouseEnter = (row: number, col: number) => {
     if (isDragging) {
-      dispatch({ type: MapBuilderAction.HANDLE_TILE_CLICK, payload: { row, col } });
+      dispatch({
+        type: MapBuilderAction.HANDLE_TILE_CLICK,
+        payload: { row, col },
+      });
     }
   };
 
@@ -50,7 +56,7 @@ function Editor() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Editor</CardTitle>
+        <CardTitle className="text-xl">Editor</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex space-x-2">
@@ -63,7 +69,10 @@ function Editor() {
                 variant={currentLayer === index ? "secondary" : "outline"}
                 className={`border ${activeClasses(currentLayer === index)}`}
                 onClick={() =>
-                  dispatch({ type: MapBuilderAction.SET_CURRENT_LAYER, payload: index })
+                  dispatch({
+                    type: MapBuilderAction.SET_CURRENT_LAYER,
+                    payload: index,
+                  })
                 }
               >
                 Layer {index + 1}
@@ -81,7 +90,9 @@ function Editor() {
             </div>
           ))}
           <Button
-            onClick={() => dispatch({ type: MapBuilderAction.ADD_LAYER, payload: NEVER })}
+            onClick={() =>
+              dispatch({ type: MapBuilderAction.ADD_LAYER, payload: NEVER })
+            }
             className="py-0 px-2"
           >
             <Plus
@@ -140,11 +151,14 @@ function Editor() {
           ))}
         </div>
       </CardContent>
-      <DeleteLayerModal
+      <ConfirmDeleteModal
         isOpen={layerToDelete !== null}
         onClose={closeDeleteLayerModal}
         onConfirm={confirmDeleteLayer}
-        layerIndex={layerToDelete}
+        title="Delete Layer"
+        description={`Are you sure you want to delete Layer ${
+          layerToDelete !== null ? layerToDelete + 1 : ""
+        }? This action cannot be undone.`}
       />
     </Card>
   );

@@ -102,7 +102,7 @@ export default function Toolbar() {
   return (
     <Card className="mb-4">
       <CardHeader>
-        <CardTitle>Toolbar</CardTitle>
+        <CardTitle className="text-xl">Toolbar</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -140,7 +140,11 @@ export default function Toolbar() {
                   </span>
                 </button>
                 {tile.id !== EMPTY_TILE.id && (
-                  <Popover>
+                  <Popover
+                    onOpenChange={(open) => {
+                      console.log(open ? "open" : "closed");
+                    }}
+                  >
                     <PopoverTrigger asChild>
                       <Button
                         size="icon"

@@ -5,6 +5,8 @@ import {
   ThemeProviderContext,
 } from "@/hooks/useTheme";
 
+export type ResolvedTheme = "dark" | "light";
+
 export default function ThemeProvider({
   children,
   defaultTheme,
@@ -14,6 +16,8 @@ export default function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
   );
+
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -27,17 +31,19 @@ export default function ThemeProvider({
         : "light";
 
       root.classList.add(systemTheme);
+      setResolvedTheme(systemTheme);
       return;
     }
 
     root.classList.add(theme);
+    setResolvedTheme(theme);
   }, [theme]);
 
   const value = {
-    theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+    theme: resolvedTheme,
+    setTheme: (t: Theme) => {
+      localStorage.setItem(storageKey, t);
+      setTheme(t);
     },
   };
 

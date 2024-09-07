@@ -1,4 +1,5 @@
 // components/Slider.tsx
+import { useTheme } from "@/hooks/useTheme";
 import { Range, getTrackBackground } from "react-range";
 
 interface SliderProps {
@@ -20,6 +21,9 @@ export function Slider({
   onChange,
   onFinalChange,
 }: SliderProps) {
+  const { theme } = useTheme();
+  const trackColors =
+    theme === "dark" ? ["#E5E7EB", "#4B5563"] : ["#1F2937", "#d5d9e0"];
   return (
     <div className="flex justify-center flex-wrap">
       <Range
@@ -48,7 +52,7 @@ export function Slider({
               style={{
                 background: getTrackBackground({
                   values,
-                  colors: ["#000", "#ccc"],
+                  colors: trackColors,
                   min,
                   max,
                   rtl: false,
@@ -75,11 +79,13 @@ export function Slider({
                   : "scale(1)",
               }}
               className={`h-6 w-6 bg-white flex justify-center items-center border ${
-                isDragged ? "border-black" : "border-gray-300"
+                isDragged ? "border-[#4B5563]" : "border-gray-300"
               }`}
             >
               <div
-                className={`h-3 w-1 ${isDragged ? "bg-black" : "bg-gray-300"}`}
+                className={`h-3 w-1 ${
+                  isDragged ? "bg-[#4B5563]" : "bg-gray-300"
+                }`}
               />
             </div>
           </div>

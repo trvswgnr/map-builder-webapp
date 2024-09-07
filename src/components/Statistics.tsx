@@ -8,27 +8,31 @@ export default function Statistics() {
   const tileStats = layers
     .flatMap((layer) => layer.flat())
     .reduce((acc, tile) => {
-      acc[tile.id] = (acc[tile.id] || 0) + 1;
+      acc[tile.name] = (acc[tile.name] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
   return (
     <Card className="mb-4">
       <CardHeader>
-        <CardTitle>Statistics</CardTitle>
+        <CardTitle className="text-xl">Statistics</CardTitle>
       </CardHeader>
       <CardContent>
-        <ul>
-          <li>
-            Size: {mapSize.columns}x{mapSize.rows} ={" "}
-            {mapSize.columns * mapSize.rows} tiles
-          </li>
-          {Object.entries(tileStats).map(([type, count]) => (
-            <li key={type}>
-              {type}: {count}
-            </li>
-          ))}
-        </ul>
+        <div className="mb-3">
+          <p className="font-bold">Size:</p>
+          {mapSize.columns} x {mapSize.rows} x {layers.length} ={" "}
+          {mapSize.columns * mapSize.rows * layers.length} tiles
+        </div>
+        <div>
+          <p className="font-bold">Tiles:</p>
+          <ul>
+            {Object.entries(tileStats).map(([type, count]) => (
+              <li key={type}>
+                {type}: {count}
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );

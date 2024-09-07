@@ -13,14 +13,16 @@ interface DeleteLayerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  layerIndex: number | null;
+  title: string;
+  description: string;
 }
 
-export function DeleteLayerModal({
+export function ConfirmDeleteModal({
+  title,
+  description,
   isOpen,
   onClose,
   onConfirm,
-  layerIndex,
 }: DeleteLayerModalProps) {
   return (
     <Dialog
@@ -29,12 +31,8 @@ export function DeleteLayerModal({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete Layer</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete Layer{" "}
-            {layerIndex !== null ? layerIndex + 1 : ""}? This action cannot be
-            undone.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button
