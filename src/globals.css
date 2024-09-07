@@ -29,6 +29,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --map-background: 215 32% 100%;
   }
 
   .dark {
@@ -56,6 +57,7 @@
     --chart-3: 30 80% 60%;
     --chart-4: 280 65% 65%;
     --chart-5: 340 75% 60%;
+    --map-background: 215 32% 10.69%;
   }
 }
 
@@ -72,4 +74,8 @@
 
 .tile {
   @apply border border-border hover:border-gray-400 dark:hover:border-gray-600 hover:border-2 bg-cover bg-center;
+}
+
+.map-background {
+  background-color: hsl(var(--map-background));
 }

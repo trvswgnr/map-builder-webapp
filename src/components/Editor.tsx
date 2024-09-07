@@ -102,7 +102,7 @@ function Editor() {
           </Button>
         </div>
         <div
-          className="relative w-full touch-action-none border bg-background"
+          className="relative w-full touch-action-none border map-background"
           style={{
             paddingBottom: `${(mapSize.rows / mapSize.columns) * 100}%`,
             cursor: "crosshair",
