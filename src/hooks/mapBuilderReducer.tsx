@@ -1,6 +1,5 @@
 // hooks/mapBuilderReducer.tsx
-import { Reducer } from "react";
-import { MapSize, MapLayer, Tile, SaveData } from "@/lib/types";
+import { MapSize, MapLayer, MapTile, SaveData, Dimension } from "@/lib/types";
 import { EMPTY_TILE, DEFAULT_TOOLBAR_TILES } from "@/lib/utils";
 
 // State type
@@ -9,55 +8,71 @@ export interface MapBuilderState {
   selectedTile: string;
   layers: MapLayer[];
   currentLayer: number;
-  toolbarTiles: Tile[];
+  toolbarTiles: MapTile[];
 }
 
-// Action types
-type Action =
-  | { type: "SET_MAP_SIZE"; payload: MapSize }
-  | { type: "SET_SELECTED_TILE"; payload: string }
-  | { type: "SET_LAYERS"; payload: MapLayer[] }
-  | { type: "SET_CURRENT_LAYER"; payload: number }
-  | { type: "SET_TOOLBAR_TILES"; payload: Tile[] }
-  | { type: "HANDLE_TILE_CLICK"; payload: { row: number; col: number } }
-  | { type: "ADD_LAYER" }
-  | { type: "DELETE_LAYER"; payload: number }
-  | {
-      type: "HANDLE_MAP_SIZE_CHANGE";
-      payload: { dimension: "columns" | "rows"; value: number };
-    }
-  | { type: "LOAD_MAP"; payload: SaveData };
+export enum Action {
+  SET_MAP_SIZE = "SET_MAP_SIZE",
+  SET_SELECTED_TILE = "SET_SELECTED_TILE",
+  SET_LAYERS = "SET_LAYERS",
+  SET_CURRENT_LAYER = "SET_CURRENT_LAYER",
+  SET_TOOLBAR_TILES = "SET_TOOLBAR_TILES",
+  HANDLE_TILE_CLICK = "HANDLE_TILE_CLICK",
+  ADD_LAYER = "ADD_LAYER",
+  DELETE_LAYER = "DELETE_LAYER",
+  HANDLE_MAP_SIZE_CHANGE = "HANDLE_MAP_SIZE_CHANGE",
+  LOAD_MAP = "LOAD_MAP",
+}
 
-// Initial state
+// prettier-ignore
+type Actions =
+  | Action.Event<Action.SET_MAP_SIZE, MapSize>
+  | Action.Event<Action.SET_SELECTED_TILE, string>
+  | Action.Event<Action.SET_LAYERS, MapLayer[]>
+  | Action.Event<Action.SET_CURRENT_LAYER, number>
+  | Action.Event<Action.SET_TOOLBAR_TILES, MapTile[]>
+  | Action.Event<Action.HANDLE_TILE_CLICK, { row: number; col: number }>
+  | Action.Event<Action.ADD_LAYER, never>
+  | Action.Event<Action.DELETE_LAYER, number>
+  | Action.Event<Action.HANDLE_MAP_SIZE_CHANGE, { dimension: Dimension; value: number }>
+  | Action.Event<Action.LOAD_MAP, SaveData>;
+
+export namespace Action {
+  export type Event<T extends Action, P> = {
+    readonly type: T;
+    readonly payload: P;
+  };
+}
+
 export const initialState: MapBuilderState = {
   mapSize: { columns: 10, rows: 10 },
   selectedTile: "wall",
   layers: [
-    Array(10)
-      .fill(null)
-      .map(() => Array(10).fill(EMPTY_TILE)),
+    Array<MapTile[]>(10)
+      .fill(null!)
+      .map(() => Array<MapTile>(10).fill(EMPTY_TILE)),
   ],
   currentLayer: 0,
   toolbarTiles: DEFAULT_TOOLBAR_TILES,
 };
 
 // Reducer function
-export const mapBuilderReducer: Reducer<MapBuilderState, Action> = (
-  state,
-  action,
-) => {
+export function mapBuilderReducer(
+  state: MapBuilderState,
+  action: Actions,
+): MapBuilderState {
   switch (action.type) {
-    case "SET_MAP_SIZE":
+    case Action.SET_MAP_SIZE:
       return { ...state, mapSize: action.payload };
-    case "SET_SELECTED_TILE":
+    case Action.SET_SELECTED_TILE:
       return { ...state, selectedTile: action.payload };
-    case "SET_LAYERS":
+    case Action.SET_LAYERS:
       return { ...state, layers: action.payload };
-    case "SET_CURRENT_LAYER":
+    case Action.SET_CURRENT_LAYER:
       return { ...state, currentLayer: action.payload };
-    case "SET_TOOLBAR_TILES":
+    case Action.SET_TOOLBAR_TILES:
       return { ...state, toolbarTiles: action.payload };
-    case "HANDLE_TILE_CLICK": {
+    case Action.HANDLE_TILE_CLICK: {
       const { row, col } = action.payload;
       const newLayers = [...state.layers];
       const selectedTileData = state.toolbarTiles.find(
@@ -73,7 +88,7 @@ export const mapBuilderReducer: Reducer<MapBuilderState, Action> = (
       }
       return { ...state, layers: newLayers };
     }
-    case "ADD_LAYER": {
+    case Action.ADD_LAYER: {
       const newLayer = Array(state.mapSize.rows)
         .fill(null)
         .map(() => Array(state.mapSize.columns).fill(EMPTY_TILE));
@@ -83,7 +98,7 @@ export const mapBuilderReducer: Reducer<MapBuilderState, Action> = (
         currentLayer: state.layers.length,
       };
     }
-    case "DELETE_LAYER": {
+    case Action.DELETE_LAYER: {
       if (state.layers.length <= 1) return state;
       const newLayers = state.layers.filter((_, i) => i !== action.payload);
       return {
@@ -92,7 +107,7 @@ export const mapBuilderReducer: Reducer<MapBuilderState, Action> = (
         currentLayer: Math.min(state.currentLayer, newLayers.length - 1),
       };
     }
-    case "HANDLE_MAP_SIZE_CHANGE": {
+    case Action.HANDLE_MAP_SIZE_CHANGE: {
       const { dimension, value } = action.payload;
       const newSize = { ...state.mapSize, [dimension]: value };
       const newLayers = state.layers.map((layer) =>
@@ -111,7 +126,7 @@ export const mapBuilderReducer: Reducer<MapBuilderState, Action> = (
       );
       return { ...state, mapSize: newSize, layers: newLayers };
     }
-    case "LOAD_MAP": {
+    case Action.LOAD_MAP: {
       const { layers, settings } = action.payload;
       return {
         ...state,
@@ -142,7 +157,5 @@ export const mapBuilderReducer: Reducer<MapBuilderState, Action> = (
         })),
       };
     }
-    default:
-      return state;
   }
-};
+}

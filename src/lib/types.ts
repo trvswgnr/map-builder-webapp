@@ -1,5 +1,5 @@
 // lib/types.ts
-export type Tile = {
+export type MapTile = {
   readonly type: string;
   readonly color: string;
   readonly texture?: {
@@ -8,7 +8,10 @@ export type Tile = {
   };
 };
 
-export type MapLayer = readonly Tile[][];
+/**
+ * a matrix of Tiles with and width and height
+ */
+export type MapLayer = readonly MapTile[][];
 
 export type MapSize = {
   readonly columns: number;
@@ -16,7 +19,7 @@ export type MapSize = {
 };
 
 export type SaveDataTile = Readonly<
-  Omit<Tile, "texture"> & {
+  Omit<MapTile, "texture"> & {
     readonly texture: { readonly filename: string } | undefined;
   }
 >;
@@ -36,3 +39,5 @@ export type ChartData = {
   readonly type: string;
   readonly count: number;
 };
+
+export type Dimension = "columns" | "rows";

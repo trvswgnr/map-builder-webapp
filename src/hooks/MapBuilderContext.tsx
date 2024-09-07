@@ -12,6 +12,7 @@ import {
   mapBuilderReducer,
   initialState,
   MapBuilderState,
+  Action,
 } from "@/hooks/mapBuilderReducer";
 
 type MapBuilderContextType = MapBuilderState & {
@@ -86,7 +87,7 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
           return void errorToast("Failed to load map. Please try again.");
         }
         const saveData: SaveData = JSON.parse(content);
-        dispatch({ type: "LOAD_MAP", payload: saveData });
+        dispatch({ type: Action.LOAD_MAP, payload: saveData });
       };
       reader.readAsText(file);
     },

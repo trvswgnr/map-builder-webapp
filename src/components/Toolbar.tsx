@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Slider } from "@/components/Slider";
-import { Tile } from "@/lib/types";
+import { MapTile } from "@/lib/types";
 import {
   EMPTY_TILE,
   getRandomColor,
@@ -34,7 +34,7 @@ export const Toolbar: React.FC = () => {
   const [mapRows, setMapRows] = useState(mapSize.rows);
 
   const handleToolbarAddTile = () => {
-    const newTile: Tile = {
+    const newTile: MapTile = {
       type: `NewTile${toolbarTiles.length + 1}`,
       color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
     };
@@ -44,7 +44,7 @@ export const Toolbar: React.FC = () => {
     });
   };
 
-  const handleToolbarEditTile = (index: number, updatedTile: Tile) => {
+  const handleToolbarEditTile = (index: number, updatedTile: MapTile) => {
     const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
     dispatch({ type: "SET_TOOLBAR_TILES", payload: newTiles });
