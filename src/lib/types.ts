@@ -42,6 +42,3 @@ export type ChartData = {
 
 export type Dimension = "columns" | "rows";
 
-export type Some<T> = NonNullable<T>;
-export type None = null | undefined;
-export type Option<T> = Some<T> | None;

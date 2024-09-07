@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { MapTile, MapLayer, Option, Some, None } from "@/lib/types";
+import type { MapTile, MapLayer } from "@/lib/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -62,10 +62,22 @@ export function activeClasses(isActive: boolean) {
 
 export const NEVER: never = undefined!;
 
-export function isSome<T>(value: Option<T>): value is Some<T> {
-  return value !== null && value !== undefined;
+/**
+ * An error that can be recovered from.
+ */
+export class Recoverable extends Error {
+  private recoveryFn: <T, U>(value: T) => U;
+
+  public constructor(message: string, recoveryFn: <T, U>(value: T) => U) {
+    super(message);
+    this.recoveryFn = recoveryFn;
+  }
+
+  public recover<T, U>(value: T): U {
+    return this.recoveryFn<T, U>(value);
+  }
 }
 
-export function isNone<T>(value: Option<T>): value is None {
-  return value === null || value === undefined;
+export function isRecoverable(value: unknown): value is Recoverable {
+  return value instanceof Recoverable;
 }

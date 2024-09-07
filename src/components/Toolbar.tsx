@@ -1,6 +1,5 @@
 // components/Toolbar.tsx
 import React, { useState } from "react";
-import { useMapBuilder } from "../hooks/MapBuilderContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,9 +18,10 @@ import {
   getTileButtonTextColor,
 } from "@/lib/utils";
 import { useErrorToast } from "@/hooks/useErrorToast";
-import { Action } from "@/hooks/mapBuilderReducer";
+import { MapBuilderAction } from "@/lib/mapBuilderReducer";
+import { useMapBuilder } from "@/hooks/useMapBuilder";
 
-export const Toolbar: React.FC = () => {
+export default function Toolbar() {
   const errorToast = useErrorToast();
   const {
     mapSize,
@@ -40,7 +40,7 @@ export const Toolbar: React.FC = () => {
       color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
     };
     dispatch({
-      type: Action.SET_TOOLBAR_TILES,
+      type: MapBuilderAction.SET_TOOLBAR_TILES,
       payload: [...toolbarTiles, newTile],
     });
   };
@@ -48,18 +48,18 @@ export const Toolbar: React.FC = () => {
   const handleToolbarEditTile = (index: number, updatedTile: MapTile) => {
     const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
-    dispatch({ type: Action.SET_TOOLBAR_TILES, payload: newTiles });
+    dispatch({ type: MapBuilderAction.SET_TOOLBAR_TILES, payload: newTiles });
   };
 
   const handleToolbarDeleteTile = (index: number) => {
     const newTiles = toolbarTiles.filter((_, i) => i !== index);
-    dispatch({ type: Action.SET_TOOLBAR_TILES, payload: newTiles });
+    dispatch({ type: MapBuilderAction.SET_TOOLBAR_TILES, payload: newTiles });
     const tileAtIndex = toolbarTiles[index];
     if (tileAtIndex === undefined) {
       return void errorToast("No tile at index");
     }
     if (selectedTile === tileAtIndex.name) {
-      dispatch({ type: Action.SET_SELECTED_TILE, payload: "empty" });
+      dispatch({ type: MapBuilderAction.SET_SELECTED_TILE, payload: "empty" });
     }
   };
 
@@ -118,7 +118,7 @@ export const Toolbar: React.FC = () => {
                   }}
                   onClick={() =>
                     dispatch({
-                      type: Action.SET_SELECTED_TILE,
+                      type: MapBuilderAction.SET_SELECTED_TILE,
                       payload: tile.name,
                     })
                   }
@@ -269,7 +269,7 @@ export const Toolbar: React.FC = () => {
               onFinalChange={([value]) =>
                 value !== undefined &&
                 dispatch({
-                  type: Action.HANDLE_MAP_SIZE_CHANGE,
+                  type: MapBuilderAction.HANDLE_MAP_SIZE_CHANGE,
                   payload: { dimension: "columns", value },
                 })
               }
@@ -287,7 +287,7 @@ export const Toolbar: React.FC = () => {
               onFinalChange={([value]) =>
                 value !== undefined &&
                 dispatch({
-                  type: Action.HANDLE_MAP_SIZE_CHANGE,
+                  type: MapBuilderAction.HANDLE_MAP_SIZE_CHANGE,
                   payload: { dimension: "rows", value },
                 })
               }
@@ -326,4 +326,4 @@ export const Toolbar: React.FC = () => {
       </CardContent>
     </Card>
   );
-};
+}

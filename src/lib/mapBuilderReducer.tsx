@@ -2,7 +2,6 @@
 import { MapSize, MapLayer, MapTile, SaveData, Dimension } from "@/lib/types";
 import { EMPTY_TILE, DEFAULT_TOOLBAR_TILES, NEVER } from "@/lib/utils";
 
-// State type
 export interface MapBuilderState {
   mapSize: MapSize;
   selectedTile: string;
@@ -11,7 +10,7 @@ export interface MapBuilderState {
   toolbarTiles: MapTile[];
 }
 
-export enum Action {
+export enum MapBuilderAction {
   SET_MAP_SIZE = "SET_MAP_SIZE",
   SET_SELECTED_TILE = "SET_SELECTED_TILE",
   SET_LAYERS = "SET_LAYERS",
@@ -26,23 +25,21 @@ export enum Action {
 
 // prettier-ignore
 export type ReducerActions =
-  | Action.Event<Action.SET_MAP_SIZE, MapSize>
-  | Action.Event<Action.SET_SELECTED_TILE, string>
-  | Action.Event<Action.SET_LAYERS, MapLayer[]>
-  | Action.Event<Action.SET_CURRENT_LAYER, number>
-  | Action.Event<Action.SET_TOOLBAR_TILES, MapTile[]>
-  | Action.Event<Action.HANDLE_TILE_CLICK, { row: number; col: number }>
-  | Action.Event<Action.ADD_LAYER, never>
-  | Action.Event<Action.DELETE_LAYER, number>
-  | Action.Event<Action.HANDLE_MAP_SIZE_CHANGE, { dimension: Dimension; value: number }>
-  | Action.Event<Action.LOAD_MAP, SaveData>;
+  | ActionEvent<MapBuilderAction.SET_MAP_SIZE, MapSize>
+  | ActionEvent<MapBuilderAction.SET_SELECTED_TILE, string>
+  | ActionEvent<MapBuilderAction.SET_LAYERS, MapLayer[]>
+  | ActionEvent<MapBuilderAction.SET_CURRENT_LAYER, number>
+  | ActionEvent<MapBuilderAction.SET_TOOLBAR_TILES, MapTile[]>
+  | ActionEvent<MapBuilderAction.HANDLE_TILE_CLICK, { row: number; col: number }>
+  | ActionEvent<MapBuilderAction.ADD_LAYER, never>
+  | ActionEvent<MapBuilderAction.DELETE_LAYER, number>
+  | ActionEvent<MapBuilderAction.HANDLE_MAP_SIZE_CHANGE, { dimension: Dimension; value: number }>
+  | ActionEvent<MapBuilderAction.LOAD_MAP, SaveData>;
 
-export namespace Action {
-  export type Event<T extends Action, P> = {
-    readonly type: T;
-    readonly payload: P;
-  };
-}
+export type ActionEvent<T extends MapBuilderAction, P> = {
+  readonly type: T;
+  readonly payload: P;
+};
 
 export const initialState: MapBuilderState = {
   mapSize: { columns: 10, rows: 10 },
@@ -62,17 +59,17 @@ export function mapBuilderReducer(
   action: ReducerActions,
 ): MapBuilderState {
   switch (action.type) {
-    case Action.SET_MAP_SIZE:
+    case MapBuilderAction.SET_MAP_SIZE:
       return { ...state, mapSize: action.payload };
-    case Action.SET_SELECTED_TILE:
+    case MapBuilderAction.SET_SELECTED_TILE:
       return { ...state, selectedTile: action.payload };
-    case Action.SET_LAYERS:
+    case MapBuilderAction.SET_LAYERS:
       return { ...state, layers: action.payload };
-    case Action.SET_CURRENT_LAYER:
+    case MapBuilderAction.SET_CURRENT_LAYER:
       return { ...state, currentLayer: action.payload };
-    case Action.SET_TOOLBAR_TILES:
+    case MapBuilderAction.SET_TOOLBAR_TILES:
       return { ...state, toolbarTiles: action.payload };
-    case Action.HANDLE_TILE_CLICK: {
+    case MapBuilderAction.HANDLE_TILE_CLICK: {
       const { row, col } = action.payload;
       const newLayers = [...state.layers];
       const selectedTileData = state.toolbarTiles.find(
@@ -88,7 +85,7 @@ export function mapBuilderReducer(
       }
       return { ...state, layers: newLayers };
     }
-    case Action.ADD_LAYER: {
+    case MapBuilderAction.ADD_LAYER: {
       const newLayer = Array(state.mapSize.rows)
         .fill(null)
         .map(() => Array(state.mapSize.columns).fill(EMPTY_TILE));
@@ -98,7 +95,7 @@ export function mapBuilderReducer(
         currentLayer: state.layers.length,
       };
     }
-    case Action.DELETE_LAYER: {
+    case MapBuilderAction.DELETE_LAYER: {
       if (state.layers.length <= 1) return state;
       const newLayers = state.layers.filter((_, i) => i !== action.payload);
       return {
@@ -107,7 +104,7 @@ export function mapBuilderReducer(
         currentLayer: Math.min(state.currentLayer, newLayers.length - 1),
       };
     }
-    case Action.HANDLE_MAP_SIZE_CHANGE: {
+    case MapBuilderAction.HANDLE_MAP_SIZE_CHANGE: {
       const { dimension, value } = action.payload;
       const newSize = { ...state.mapSize, [dimension]: value };
       const newLayers = state.layers.map((layer) =>
@@ -134,7 +131,7 @@ export function mapBuilderReducer(
       );
       return { ...state, mapSize: newSize, layers: newLayers };
     }
-    case Action.LOAD_MAP: {
+    case MapBuilderAction.LOAD_MAP: {
       const { layers, settings } = action.payload;
       return {
         ...state,

@@ -1,14 +1,14 @@
 // components/Editor.tsx
 import { useState, useEffect } from "react";
-import { useMapBuilder } from "@/hooks/MapBuilderContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { activeClasses, NEVER } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { DeleteLayerModal } from "@/components/DeleteLayerModal";
 import { useErrorToast } from "@/hooks/useErrorToast";
-import { Action } from "@/hooks/mapBuilderReducer";
+import { MapBuilderAction } from "@/lib/mapBuilderReducer";
 import { MapTile } from "@/lib/types";
+import { useMapBuilder } from "@/hooks/useMapBuilder";
 
 export default Editor;
 
@@ -21,19 +21,19 @@ function Editor() {
   const closeDeleteLayerModal = () => setLayerToDelete(null);
   const confirmDeleteLayer = () => {
     if (layerToDelete !== null) {
-      dispatch({ type: Action.DELETE_LAYER, payload: layerToDelete });
+      dispatch({ type: MapBuilderAction.DELETE_LAYER, payload: layerToDelete });
     }
     closeDeleteLayerModal();
   };
 
   const handleEditorMouseDown = (row: number, col: number) => {
     setIsDragging(true);
-    dispatch({ type: Action.HANDLE_TILE_CLICK, payload: { row, col } });
+    dispatch({ type: MapBuilderAction.HANDLE_TILE_CLICK, payload: { row, col } });
   };
 
   const handleEditorMouseEnter = (row: number, col: number) => {
     if (isDragging) {
-      dispatch({ type: Action.HANDLE_TILE_CLICK, payload: { row, col } });
+      dispatch({ type: MapBuilderAction.HANDLE_TILE_CLICK, payload: { row, col } });
     }
   };
 
@@ -63,7 +63,7 @@ function Editor() {
                 variant={currentLayer === index ? "secondary" : "outline"}
                 className={`border ${activeClasses(currentLayer === index)}`}
                 onClick={() =>
-                  dispatch({ type: Action.SET_CURRENT_LAYER, payload: index })
+                  dispatch({ type: MapBuilderAction.SET_CURRENT_LAYER, payload: index })
                 }
               >
                 Layer {index + 1}
@@ -81,7 +81,7 @@ function Editor() {
             </div>
           ))}
           <Button
-            onClick={() => dispatch({ type: Action.ADD_LAYER, payload: NEVER })}
+            onClick={() => dispatch({ type: MapBuilderAction.ADD_LAYER, payload: NEVER })}
             className="py-0 px-2"
           >
             <Plus
@@ -122,7 +122,7 @@ function Editor() {
               >
                 {layer.map((row, rowIndex) =>
                   row.map((tile, colIndex) => (
-                    <Editor.Tile
+                    <EditorTile
                       key={`${layerIndex}-${rowIndex}-${colIndex}`}
                       layerIndex={layerIndex}
                       rowIndex={rowIndex}
@@ -150,77 +150,78 @@ function Editor() {
   );
 }
 
-namespace Editor {
-  export type TileProps = {
-    layerIndex: number;
-    rowIndex: number;
-    colIndex: number;
-    tile: MapTile;
-    currentLayer: number;
-    onMouseDown: (rowIndex: number, colIndex: number) => void;
-    onMouseEnter: (rowIndex: number, colIndex: number) => void;
-    onMouseUp: () => void;
-  };
-  export function Tile(props: TileProps) {
-    const {
-      layerIndex,
-      rowIndex,
-      colIndex,
-      tile,
-      currentLayer,
-      onMouseDown,
-      onMouseEnter,
-      onMouseUp,
-    } = props;
-    const errorToast = useErrorToast();
-    return (
-      <div
-        key={`${layerIndex}-${rowIndex}-${colIndex}`}
-        className="tile"
-        style={{
-          backgroundColor: tile.color,
-          backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
-        }}
-        onMouseDown={() =>
-          layerIndex === currentLayer && onMouseDown(rowIndex, colIndex)
+export type EditorTileProps = {
+  layerIndex: number;
+  rowIndex: number;
+  colIndex: number;
+  tile: MapTile;
+  currentLayer: number;
+  onMouseDown: (rowIndex: number, colIndex: number) => void;
+  onMouseEnter: (rowIndex: number, colIndex: number) => void;
+  onMouseUp: () => void;
+};
+export function EditorTile(props: EditorTileProps): JSX.Element {
+  const {
+    layerIndex,
+    rowIndex,
+    colIndex,
+    tile,
+    currentLayer,
+    onMouseDown,
+    onMouseEnter,
+    onMouseUp,
+  } = props;
+  const errorToast = useErrorToast();
+  return (
+    <div
+      key={`${layerIndex}-${rowIndex}-${colIndex}`}
+      className="tile"
+      style={{
+        backgroundColor: tile.color,
+        backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",
+      }}
+      onMouseDown={() =>
+        layerIndex === currentLayer && onMouseDown(rowIndex, colIndex)
+      }
+      onMouseEnter={() =>
+        layerIndex === currentLayer && onMouseEnter(rowIndex, colIndex)
+      }
+      onMouseUp={onMouseUp}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        if (layerIndex === currentLayer) {
+          onMouseDown(rowIndex, colIndex);
         }
-        onMouseEnter={() =>
-          layerIndex === currentLayer && onMouseEnter(rowIndex, colIndex)
+      }}
+      onTouchMove={(e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        if (!touch) {
+          errorToast("Touch event not found");
+          return;
         }
-        onMouseUp={onMouseUp}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          layerIndex === currentLayer && onMouseDown(rowIndex, colIndex);
-        }}
-        onTouchMove={(e) => {
-          e.preventDefault();
-          const touch = e.touches[0];
-          if (!touch) {
-            errorToast("Touch event not found");
-            return;
-          }
-          const element = document.elementFromPoint(
-            touch.clientX,
-            touch.clientY,
-          ) as HTMLElement;
-          const [touchRowIndex, touchColIndex] = (
-            element.dataset.tileCoords ?? ""
-          )
-            .split(",")
-            .map(Number);
-          if (touchRowIndex === undefined || touchColIndex === undefined) {
-            errorToast("No tile coordinates found");
-            return;
-          }
-          layerIndex === currentLayer &&
-            onMouseEnter(touchRowIndex, touchColIndex);
-        }}
-        onTouchEnd={(e) => {
-          e.preventDefault();
-          onMouseUp();
-        }}
-        data-tile-coords={`${rowIndex},${colIndex}`}
-      ></div>
-    );
-  }
+        const element = document.elementFromPoint(
+          touch.clientX,
+          touch.clientY,
+        ) as HTMLElement;
+        const [touchRowIndex, touchColIndex] = (
+          element.dataset.tileCoords ?? ""
+        )
+          .split(",")
+          .map(Number);
+        if (touchRowIndex === undefined || touchColIndex === undefined) {
+          errorToast("No tile coordinates found");
+          return;
+        }
+        if (layerIndex === currentLayer) {
+          onMouseEnter(touchRowIndex, touchColIndex);
+        }
+      }}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        onMouseUp();
+      }}
+      data-tile-coords={`${rowIndex},${colIndex}`}
+    ></div>
+  );
 }

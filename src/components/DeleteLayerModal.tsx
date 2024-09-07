@@ -1,5 +1,4 @@
 // components/DeleteLayerModal.tsx
-import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,12 +16,12 @@ interface DeleteLayerModalProps {
   layerIndex: number | null;
 }
 
-export const DeleteLayerModal: React.FC<DeleteLayerModalProps> = ({
+export function DeleteLayerModal({
   isOpen,
   onClose,
   onConfirm,
   layerIndex,
-}) => {
+}: DeleteLayerModalProps) {
   return (
     <Dialog
       open={isOpen}
@@ -54,4 +53,4 @@ export const DeleteLayerModal: React.FC<DeleteLayerModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

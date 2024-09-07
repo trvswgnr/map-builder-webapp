@@ -1,8 +1,8 @@
 // components/TileDistribution.tsx
 import React, { Suspense, lazy } from "react";
-import { useMapBuilder } from "../hooks/MapBuilderContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useMapBuilder } from "@/hooks/useMapBuilder";
 
 const DistributionChart = lazy(() => import("./DistributionChart"));
 

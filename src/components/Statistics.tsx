@@ -1,9 +1,8 @@
 // components/Statistics.tsx
-import React from "react";
-import { useMapBuilder } from "../hooks/MapBuilderContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMapBuilder } from "@/hooks/useMapBuilder";
 
-export const Statistics: React.FC = () => {
+export default function Statistics() {
   const { layers, mapSize } = useMapBuilder();
 
   const tileStats = layers
@@ -33,4 +32,4 @@ export const Statistics: React.FC = () => {
       </CardContent>
     </Card>
   );
-};
+}

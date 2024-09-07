@@ -1,38 +1,19 @@
 // hooks/MapBuilderContext.tsx
-import React, {
-  createContext,
-  useContext,
-  useReducer,
-  useCallback,
-} from "react";
-import { SaveData } from "@/lib/types";
-import { useErrorToast } from "@/hooks/useErrorToast";
-import { createTextureRefs, NEVER } from "@/lib/utils";
+
 import {
   mapBuilderReducer,
   initialState,
-  type MapBuilderState,
-  Action,
-  ReducerActions,
-} from "@/hooks/mapBuilderReducer";
+  MapBuilderAction,
+} from "@/lib/mapBuilderReducer";
+import { useErrorToast } from "@/hooks/useErrorToast";
+import { MapBuilderContext } from "@/hooks/useMapBuilder";
+import { SaveData } from "@/lib/types";
+import { createTextureRefs } from "@/lib/utils";
+import { useReducer, useCallback } from "react";
 
-interface IMapBuilderContext extends MapBuilderState {
-  dispatch: React.Dispatch<ReducerActions>;
-  saveToFile: () => void;
-  loadFromFile: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-const MapBuilderContext = createContext<IMapBuilderContext>(NEVER);
-
-export const useMapBuilder = () => {
-  const context = useContext(MapBuilderContext);
-  if (!context) {
-    throw new Error("useMapBuilder must be used within a MapBuilderProvider");
-  }
-  return context;
-};
-
-export function MapBuilderProvider({ children }: React.PropsWithChildren) {
+export default function MapBuilderProvider({
+  children,
+}: React.PropsWithChildren) {
   const errorToast = useErrorToast();
   const [state, dispatch] = useReducer(mapBuilderReducer, initialState);
 
@@ -80,7 +61,7 @@ export function MapBuilderProvider({ children }: React.PropsWithChildren) {
           return void errorToast("Failed to load map. Please try again.");
         }
         const saveData: SaveData = JSON.parse(content);
-        dispatch({ type: Action.LOAD_MAP, payload: saveData });
+        dispatch({ type: MapBuilderAction.LOAD_MAP, payload: saveData });
       };
       reader.readAsText(file);
     },
