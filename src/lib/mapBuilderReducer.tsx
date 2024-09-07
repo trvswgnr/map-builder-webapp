@@ -1,13 +1,18 @@
 // hooks/mapBuilderReducer.tsx
 import { MapSize, MapLayer, MapTile, SaveData, Dimension } from "@/lib/types";
-import { EMPTY_TILE, DEFAULT_TOOLBAR_TILES, NEVER } from "@/lib/utils";
+import {
+  EMPTY_TILE,
+  DEFAULT_TOOLBAR_TILES,
+  NEVER,
+  TileType,
+} from "@/lib/utils";
 
 export interface MapBuilderState {
   mapSize: MapSize;
-  selectedTile: string;
-  layers: MapLayer[];
+  selectedTile: number;
+  layers: readonly MapLayer[];
   currentLayer: number;
-  toolbarTiles: MapTile[];
+  toolbarTiles: readonly MapTile[];
 }
 
 export enum MapBuilderAction {
@@ -21,12 +26,18 @@ export enum MapBuilderAction {
   DELETE_LAYER = "DELETE_LAYER",
   HANDLE_MAP_SIZE_CHANGE = "HANDLE_MAP_SIZE_CHANGE",
   LOAD_MAP = "LOAD_MAP",
+  UPDATE_MAP_TILES = "UPDATE_MAP_TILES",
 }
+
+export type ActionEvent<T extends MapBuilderAction, P> = {
+  readonly type: T;
+  readonly payload: P;
+};
 
 // prettier-ignore
 export type ReducerActions =
   | ActionEvent<MapBuilderAction.SET_MAP_SIZE, MapSize>
-  | ActionEvent<MapBuilderAction.SET_SELECTED_TILE, string>
+  | ActionEvent<MapBuilderAction.SET_SELECTED_TILE, number>
   | ActionEvent<MapBuilderAction.SET_LAYERS, MapLayer[]>
   | ActionEvent<MapBuilderAction.SET_CURRENT_LAYER, number>
   | ActionEvent<MapBuilderAction.SET_TOOLBAR_TILES, MapTile[]>
@@ -34,16 +45,12 @@ export type ReducerActions =
   | ActionEvent<MapBuilderAction.ADD_LAYER, never>
   | ActionEvent<MapBuilderAction.DELETE_LAYER, number>
   | ActionEvent<MapBuilderAction.HANDLE_MAP_SIZE_CHANGE, { dimension: Dimension; value: number }>
-  | ActionEvent<MapBuilderAction.LOAD_MAP, SaveData>;
-
-export type ActionEvent<T extends MapBuilderAction, P> = {
-  readonly type: T;
-  readonly payload: P;
-};
+  | ActionEvent<MapBuilderAction.LOAD_MAP, SaveData>
+  | ActionEvent<MapBuilderAction.UPDATE_MAP_TILES, MapTile>;
 
 export const initialState: MapBuilderState = {
   mapSize: { columns: 10, rows: 10 },
-  selectedTile: "wall",
+  selectedTile: TileType.WALL,
   layers: [
     Array<MapTile[]>(10)
       .fill(NEVER)
@@ -73,7 +80,7 @@ export function mapBuilderReducer(
       const { row, col } = action.payload;
       const newLayers = [...state.layers];
       const selectedTileData = state.toolbarTiles.find(
-        (tile) => tile.name === state.selectedTile,
+        (tile) => tile.id === state.selectedTile,
       );
       const layer = newLayers[state.currentLayer];
       if (layer && selectedTileData) {
@@ -138,6 +145,7 @@ export function mapBuilderReducer(
         layers: layers.map((layer) =>
           layer.map((row) =>
             row.map((tile) => ({
+              id: tile.id,
               name: tile.name,
               color: tile.color,
               texture: tile.texture
@@ -152,6 +160,7 @@ export function mapBuilderReducer(
         mapSize: settings.mapSize,
         toolbarTiles: settings.toolbarTiles.map(
           (tile): MapTile => ({
+            id: tile.id,
             name: tile.name,
             color: tile.color,
             texture: tile.texture
@@ -161,6 +170,19 @@ export function mapBuilderReducer(
                 }
               : undefined,
           }),
+        ),
+      };
+    }
+    case MapBuilderAction.UPDATE_MAP_TILES: {
+      const updatedTile = action.payload as MapTile;
+      return {
+        ...state,
+        layers: state.layers.map((layer) =>
+          layer.map((row) =>
+            row.map((tile) =>
+              tile.id === updatedTile.id ? { ...tile, ...updatedTile } : tile,
+            ),
+          ),
         ),
       };
     }

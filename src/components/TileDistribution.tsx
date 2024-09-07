@@ -12,7 +12,7 @@ export default function TileDistribution(): React.ReactNode {
   const tileStats = layers
     .flatMap((layer) => layer.flat())
     .reduce((acc, tile) => {
-      acc[tile.name] = (acc[tile.name] || 0) + 1;
+      acc[tile.id] = (acc[tile.id] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 

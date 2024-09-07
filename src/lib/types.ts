@@ -1,5 +1,6 @@
 // lib/types.ts
 export type MapTile = {
+  readonly id: number;
   readonly name: string;
   readonly color: string;
   readonly texture?: {
@@ -41,4 +42,3 @@ export type ChartData = {
 };
 
 export type Dimension = "columns" | "rows";
-

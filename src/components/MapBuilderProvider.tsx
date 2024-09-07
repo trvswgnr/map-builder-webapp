@@ -22,6 +22,7 @@ export default function MapBuilderProvider({
       layers: state.layers.map((layer) =>
         layer.map((row) =>
           row.map((tile) => ({
+            id: tile.id,
             name: tile.name,
             color: tile.color,
             texture: tile.texture ? { filename: tile.texture.filename } : null,
@@ -31,6 +32,7 @@ export default function MapBuilderProvider({
       settings: {
         mapSize: state.mapSize,
         toolbarTiles: state.toolbarTiles.map((tile) => ({
+          id: tile.id,
           name: tile.name,
           color: tile.color,
           texture: tile.texture ? { filename: tile.texture.filename } : null,

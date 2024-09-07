@@ -6,14 +6,41 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const EMPTY_TILE: MapTile = { name: "empty", color: "transparent" };
-export const DEFAULT_TOOLBAR_TILES: MapTile[] = [
-  EMPTY_TILE,
-  { name: "wall", color: "#000000" },
-  { name: "start", color: "#41e5e5" },
-  { name: "end", color: "#5cf671" },
-  { name: "enemy", color: "#ef4444" },
-];
+const idGenerator = (function* () {
+  let id = 4;
+  while (true) {
+    yield id++;
+  }
+})();
+
+export function getNextId(): number {
+  return idGenerator.next().value;
+}
+
+export function createMapTile(mapTile: Omit<MapTile, "id">): MapTile {
+  return {
+    id: getNextId(),
+    ...mapTile,
+  };
+}
+
+export const DEFAULT_TOOLBAR_TILES = [
+  createMapTile({ name: "empty", color: "transparent" }),
+  createMapTile({ name: "wall", color: "#000000" }),
+  createMapTile({ name: "start", color: "#41e5e5" }),
+  createMapTile({ name: "end", color: "#5cf671" }),
+  createMapTile({ name: "enemy", color: "#ef4444" }),
+] as const;
+
+export const [EMPTY_TILE] = DEFAULT_TOOLBAR_TILES;
+
+export enum TileType {
+  EMPTY = DEFAULT_TOOLBAR_TILES[0].id,
+  WALL = DEFAULT_TOOLBAR_TILES[1].id,
+  START = DEFAULT_TOOLBAR_TILES[2].id,
+  END = DEFAULT_TOOLBAR_TILES[3].id,
+  ENEMY = DEFAULT_TOOLBAR_TILES[4].id,
+}
 
 export function getTileButtonTextColor(tile: MapTile): string {
   if (tile.texture) {
@@ -34,7 +61,7 @@ export function getTileButtonTextColor(tile: MapTile): string {
   return luminance > 0.5 ? "text-black" : "text-white";
 }
 
-export function createTextureRefs(layers: MapLayer[]) {
+export function createTextureRefs(layers: readonly MapLayer[]) {
   const texturesMap: Record<string, string> = {};
   for (const layer of layers) {
     for (const row of layer) {
@@ -57,7 +84,7 @@ export function getRandomColor(existingColors: string[]) {
 }
 
 export function activeClasses(isActive: boolean) {
-  return isActive ? "ring-2 ring-blue-500" : "";
+  return isActive ? "ring-2 ring-ring" : "";
 }
 
 export const NEVER: never = undefined!;

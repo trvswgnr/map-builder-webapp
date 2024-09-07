@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Popover,
+  PopoverClose,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
@@ -13,9 +14,12 @@ import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Slider } from "@/components/Slider";
 import { MapTile } from "@/lib/types";
 import {
+  activeClasses,
+  createMapTile,
   EMPTY_TILE,
   getRandomColor,
   getTileButtonTextColor,
+  TileType,
 } from "@/lib/utils";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { MapBuilderAction } from "@/lib/mapBuilderReducer";
@@ -35,10 +39,10 @@ export default function Toolbar() {
   const [mapRows, setMapRows] = useState(mapSize.rows);
 
   const handleToolbarAddTile = () => {
-    const newTile: MapTile = {
+    const newTile: MapTile = createMapTile({
       name: `NewTile${toolbarTiles.length + 1}`,
       color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
-    };
+    });
     dispatch({
       type: MapBuilderAction.SET_TOOLBAR_TILES,
       payload: [...toolbarTiles, newTile],
@@ -49,6 +53,7 @@ export default function Toolbar() {
     const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
     dispatch({ type: MapBuilderAction.SET_TOOLBAR_TILES, payload: newTiles });
+    dispatch({ type: MapBuilderAction.UPDATE_MAP_TILES, payload: updatedTile });
   };
 
   const handleToolbarDeleteTile = (index: number) => {
@@ -58,8 +63,11 @@ export default function Toolbar() {
     if (tileAtIndex === undefined) {
       return void errorToast("No tile at index");
     }
-    if (selectedTile === tileAtIndex.name) {
-      dispatch({ type: MapBuilderAction.SET_SELECTED_TILE, payload: "empty" });
+    if (selectedTile === tileAtIndex.id) {
+      dispatch({
+        type: MapBuilderAction.SET_SELECTED_TILE,
+        payload: TileType.EMPTY,
+      });
     }
   };
 
@@ -101,17 +109,17 @@ export default function Toolbar() {
           <div className="grid grid-cols-3 gap-2">
             {toolbarTiles.map((tile, index) => (
               <div
-                key={tile.name}
+                key={tile.id}
                 className="relative group"
               >
                 <button
-                  className={`border w-full h-12 bg-cover bg-center ${
-                    selectedTile === tile.name ? "ring-2 ring-blue-500" : ""
-                  }`}
+                  className={`border w-full h-12 bg-cover bg-center ${activeClasses(
+                    selectedTile === tile.id,
+                  )}`}
                   style={{
                     backgroundColor: tile.color,
                     borderColor:
-                      tile.name === EMPTY_TILE.name ? "#eee" : tile.color,
+                      tile.id === EMPTY_TILE.id ? "#eee" : tile.color,
                     backgroundImage: tile.texture
                       ? `url(${tile.texture.data})`
                       : "none",
@@ -119,7 +127,7 @@ export default function Toolbar() {
                   onClick={() =>
                     dispatch({
                       type: MapBuilderAction.SET_SELECTED_TILE,
-                      payload: tile.name,
+                      payload: tile.id,
                     })
                   }
                 >
@@ -131,7 +139,7 @@ export default function Toolbar() {
                     {tile.name}
                   </span>
                 </button>
-                {tile.name !== EMPTY_TILE.name && (
+                {tile.id !== EMPTY_TILE.id && (
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -157,9 +165,9 @@ export default function Toolbar() {
                           )}
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor={`tile-type-${index}`}>Type</Label>
+                          <Label htmlFor={`tile-name-${index}`}>Name</Label>
                           <Input
-                            id={`tile-type-${index}`}
+                            id={`tile-name-${index}`}
                             value={tile.name}
                             onChange={(e) =>
                               handleToolbarEditTile(index, {
@@ -238,6 +246,11 @@ export default function Toolbar() {
                               </Button>
                             )}
                           </div>
+                        </div>
+                        <div className="flex justify-end">
+                          <PopoverClose asChild>
+                            <Button>Done</Button>
+                          </PopoverClose>
                         </div>
                       </div>
                     </PopoverContent>
