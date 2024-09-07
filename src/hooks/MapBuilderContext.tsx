@@ -17,7 +17,7 @@ import {
 } from "@/hooks/mapBuilderReducer";
 
 type MapBuilderContextType = MapBuilderState & {
-  dispatch: <A extends Actions>(action: A) => void;
+  dispatch: React.Dispatch<Actions>;
   handleSave: () => void;
   handleLoad: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
@@ -38,10 +38,7 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
   children,
 }) => {
   const errorToast = useErrorToast();
-  const [state, _dispatch] = useReducer(mapBuilderReducer, initialState);
-  function dispatch<A extends Actions>(action: A) {
-    return _dispatch(action);
-  }
+  const [state, dispatch] = useReducer(mapBuilderReducer, initialState);
 
   const handleSave = useCallback(() => {
     const saveData: SaveData = {
