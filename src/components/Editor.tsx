@@ -8,7 +8,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { DeleteLayerModal } from "@/components/DeleteLayerModal";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { Action } from "@/hooks/mapBuilderReducer";
-import { Tile } from "@/lib/types";
+import { MapTile } from "@/lib/types";
 
 export default Editor;
 
@@ -91,7 +91,7 @@ function Editor() {
           </Button>
         </div>
         <div
-          className="relative w-full touch-action-none"
+          className="relative w-full touch-action-none border bg-background"
           style={{
             paddingBottom: `${(mapSize.rows / mapSize.columns) * 100}%`,
             cursor: "crosshair",
@@ -155,7 +155,7 @@ namespace Editor {
     layerIndex: number;
     rowIndex: number;
     colIndex: number;
-    tile: Tile;
+    tile: MapTile;
     currentLayer: number;
     onMouseDown: (rowIndex: number, colIndex: number) => void;
     onMouseEnter: (rowIndex: number, colIndex: number) => void;
@@ -176,7 +176,7 @@ namespace Editor {
     return (
       <div
         key={`${layerIndex}-${rowIndex}-${colIndex}`}
-        className="tile border border-gray-300 hover:border-gray-500 hover:border-2 dark:border-gray-900 bg-cover bg-center"
+        className="tile"
         style={{
           backgroundColor: tile.color,
           backgroundImage: tile.texture ? `url(${tile.texture.data})` : "none",

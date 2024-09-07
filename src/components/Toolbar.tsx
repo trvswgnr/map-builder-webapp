@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { Edit, Plus, Trash2, Upload, Save, FolderUpIcon } from "lucide-react";
 import { Slider } from "@/components/Slider";
-import { Tile } from "@/lib/types";
+import { MapTile } from "@/lib/types";
 import {
   EMPTY_TILE,
   getRandomColor,
@@ -35,8 +35,8 @@ export const Toolbar: React.FC = () => {
   const [mapRows, setMapRows] = useState(mapSize.rows);
 
   const handleToolbarAddTile = () => {
-    const newTile: Tile = {
-      type: `NewTile${toolbarTiles.length + 1}`,
+    const newTile: MapTile = {
+      name: `NewTile${toolbarTiles.length + 1}`,
       color: getRandomColor(toolbarTiles.map((tile) => tile.color)),
     };
     dispatch({
@@ -45,7 +45,7 @@ export const Toolbar: React.FC = () => {
     });
   };
 
-  const handleToolbarEditTile = (index: number, updatedTile: Tile) => {
+  const handleToolbarEditTile = (index: number, updatedTile: MapTile) => {
     const newTiles = [...toolbarTiles];
     newTiles[index] = updatedTile;
     dispatch({ type: Action.SET_TOOLBAR_TILES, payload: newTiles });
@@ -58,7 +58,7 @@ export const Toolbar: React.FC = () => {
     if (tileAtIndex === undefined) {
       return void errorToast("No tile at index");
     }
-    if (selectedTile === tileAtIndex.type) {
+    if (selectedTile === tileAtIndex.name) {
       dispatch({ type: Action.SET_SELECTED_TILE, payload: "empty" });
     }
   };
@@ -101,17 +101,17 @@ export const Toolbar: React.FC = () => {
           <div className="grid grid-cols-3 gap-2">
             {toolbarTiles.map((tile, index) => (
               <div
-                key={tile.type}
+                key={tile.name}
                 className="relative group"
               >
                 <button
                   className={`border w-full h-12 bg-cover bg-center ${
-                    selectedTile === tile.type ? "ring-2 ring-blue-500" : ""
+                    selectedTile === tile.name ? "ring-2 ring-blue-500" : ""
                   }`}
                   style={{
                     backgroundColor: tile.color,
                     borderColor:
-                      tile.type === EMPTY_TILE.type ? "#eee" : tile.color,
+                      tile.name === EMPTY_TILE.name ? "#eee" : tile.color,
                     backgroundImage: tile.texture
                       ? `url(${tile.texture.data})`
                       : "none",
@@ -119,7 +119,7 @@ export const Toolbar: React.FC = () => {
                   onClick={() =>
                     dispatch({
                       type: Action.SET_SELECTED_TILE,
-                      payload: tile.type,
+                      payload: tile.name,
                     })
                   }
                 >
@@ -128,10 +128,10 @@ export const Toolbar: React.FC = () => {
                       tile,
                     )} -mt-1 absolute inset-0 flex items-center justify-center text-xs font-bold`}
                   >
-                    {tile.type}
+                    {tile.name}
                   </span>
                 </button>
-                {tile.type !== EMPTY_TILE.type && (
+                {tile.name !== EMPTY_TILE.name && (
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -160,11 +160,11 @@ export const Toolbar: React.FC = () => {
                           <Label htmlFor={`tile-type-${index}`}>Type</Label>
                           <Input
                             id={`tile-type-${index}`}
-                            value={tile.type}
+                            value={tile.name}
                             onChange={(e) =>
                               handleToolbarEditTile(index, {
                                 ...tile,
-                                type: e.target.value,
+                                name: e.target.value,
                               })
                             }
                           />

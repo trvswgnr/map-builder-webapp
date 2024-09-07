@@ -15,6 +15,7 @@
     "jsx": "react-jsx",
 
     /* Linting */
+    "noImplicitAny": true,
     "allowUnusedLabels": false,
     "allowUnreachableCode": false,
     "strictNullChecks": true,

@@ -6,13 +6,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const DistributionChart = lazy(() => import("./DistributionChart"));
 
-export const TileDistribution: React.FC = () => {
+export default function TileDistribution(): React.ReactNode {
   const { layers } = useMapBuilder();
 
   const tileStats = layers
     .flatMap((layer) => layer.flat())
     .reduce((acc, tile) => {
-      acc[tile.type] = (acc[tile.type] || 0) + 1;
+      acc[tile.name] = (acc[tile.name] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -33,4 +33,4 @@ export const TileDistribution: React.FC = () => {
       </CardContent>
     </Card>
   );
-};
+}

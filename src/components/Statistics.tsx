@@ -9,7 +9,7 @@ export const Statistics: React.FC = () => {
   const tileStats = layers
     .flatMap((layer) => layer.flat())
     .reduce((acc, tile) => {
-      acc[tile.type] = (acc[tile.type] || 0) + 1;
+      acc[tile.name] = (acc[tile.name] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 

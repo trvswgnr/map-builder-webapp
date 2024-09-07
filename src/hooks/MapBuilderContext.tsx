@@ -7,24 +7,22 @@ import React, {
 } from "react";
 import { SaveData } from "@/lib/types";
 import { useErrorToast } from "@/hooks/useErrorToast";
-import { createTextureRefs } from "@/lib/utils";
+import { createTextureRefs, NEVER } from "@/lib/utils";
 import {
   mapBuilderReducer,
   initialState,
-  MapBuilderState,
+  type MapBuilderState,
   Action,
-  Actions,
+  ReducerActions,
 } from "@/hooks/mapBuilderReducer";
 
-type MapBuilderContextType = MapBuilderState & {
-  dispatch: React.Dispatch<Actions>;
+interface IMapBuilderContext extends MapBuilderState {
+  dispatch: React.Dispatch<ReducerActions>;
   saveToFile: () => void;
   loadFromFile: (event: React.ChangeEvent<HTMLInputElement>) => void;
-};
+}
 
-const MapBuilderContext = createContext<MapBuilderContextType | undefined>(
-  undefined,
-);
+const MapBuilderContext = createContext<IMapBuilderContext>(NEVER);
 
 export const useMapBuilder = () => {
   const context = useContext(MapBuilderContext);
@@ -34,9 +32,7 @@ export const useMapBuilder = () => {
   return context;
 };
 
-export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
-  children,
-}) => {
+export function MapBuilderProvider({ children }: React.PropsWithChildren) {
   const errorToast = useErrorToast();
   const [state, dispatch] = useReducer(mapBuilderReducer, initialState);
 
@@ -45,7 +41,7 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
       layers: state.layers.map((layer) =>
         layer.map((row) =>
           row.map((tile) => ({
-            type: tile.type,
+            name: tile.name,
             color: tile.color,
             texture: tile.texture ? { filename: tile.texture.filename } : null,
           })),
@@ -54,7 +50,7 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
       settings: {
         mapSize: state.mapSize,
         toolbarTiles: state.toolbarTiles.map((tile) => ({
-          type: tile.type,
+          name: tile.name,
           color: tile.color,
           texture: tile.texture ? { filename: tile.texture.filename } : null,
         })),
@@ -96,11 +92,11 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
       value={{
         ...state,
         dispatch,
-        saveToFile: saveToFile,
-        loadFromFile: loadFromFile,
+        saveToFile,
+        loadFromFile,
       }}
     >
       {children}
     </MapBuilderContext.Provider>
   );
-};
+}
