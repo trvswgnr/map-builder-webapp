@@ -224,7 +224,7 @@ export function EditorTile(props: EditorTileProps): JSX.Element {
           .split(",")
           .map(Number);
         if (touchRowIndex === undefined || touchColIndex === undefined) {
-          errorToast("No tile coordinates found");
+          // fine to ignore
           return;
         }
         if (layerIndex === currentLayer) {
