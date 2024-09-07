@@ -28,8 +28,8 @@ export const Toolbar: React.FC = () => {
     selectedTile,
     toolbarTiles,
     dispatch,
-    handleSave,
-    handleLoad,
+    saveToFile: handleSave,
+    loadFromFile: handleLoad,
   } = useMapBuilder();
   const [mapColumns, setMapColumns] = useState(mapSize.columns);
   const [mapRows, setMapRows] = useState(mapSize.rows);

@@ -18,8 +18,8 @@ import {
 
 type MapBuilderContextType = MapBuilderState & {
   dispatch: React.Dispatch<Actions>;
-  handleSave: () => void;
-  handleLoad: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  saveToFile: () => void;
+  loadFromFile: (event: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 const MapBuilderContext = createContext<MapBuilderContextType | undefined>(
@@ -40,16 +40,14 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
   const errorToast = useErrorToast();
   const [state, dispatch] = useReducer(mapBuilderReducer, initialState);
 
-  const handleSave = useCallback(() => {
+  const saveToFile = useCallback(() => {
     const saveData: SaveData = {
       layers: state.layers.map((layer) =>
         layer.map((row) =>
           row.map((tile) => ({
             type: tile.type,
             color: tile.color,
-            texture: tile.texture
-              ? { filename: tile.texture.filename }
-              : undefined,
+            texture: tile.texture ? { filename: tile.texture.filename } : null,
           })),
         ),
       ),
@@ -58,9 +56,7 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
         toolbarTiles: state.toolbarTiles.map((tile) => ({
           type: tile.type,
           color: tile.color,
-          texture: tile.texture
-            ? { filename: tile.texture.filename }
-            : undefined,
+          texture: tile.texture ? { filename: tile.texture.filename } : null,
         })),
         textureRefs: createTextureRefs(state.layers),
       },
@@ -75,7 +71,7 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
     a.click();
   }, [state]);
 
-  const handleLoad = useCallback(
+  const loadFromFile = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) {
@@ -100,8 +96,8 @@ export const MapBuilderProvider: React.FC<React.PropsWithChildren<{}>> = ({
       value={{
         ...state,
         dispatch,
-        handleSave,
-        handleLoad,
+        saveToFile: saveToFile,
+        loadFromFile: loadFromFile,
       }}
     >
       {children}

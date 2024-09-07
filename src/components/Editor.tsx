@@ -209,7 +209,7 @@ namespace Editor {
             .split(",")
             .map(Number);
           if (touchRowIndex === undefined || touchColIndex === undefined) {
-            errorToast("No tile coords found");
+            errorToast("No tile coordinates found");
             return;
           }
           layerIndex === currentLayer &&

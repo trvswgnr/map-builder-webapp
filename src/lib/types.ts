@@ -20,7 +20,7 @@ export type MapSize = {
 
 export type SaveDataTile = Readonly<
   Omit<Tile, "texture"> & {
-    readonly texture: { readonly filename: string } | undefined;
+    readonly texture: { readonly filename: string } | null;
   }
 >;
 
