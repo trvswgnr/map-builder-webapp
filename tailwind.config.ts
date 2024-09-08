@@ -1,5 +1,7 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
+
+export default {
   darkMode: ["class"],
   future: {
     hoverOnlyWhenSupported: true,
@@ -13,16 +15,16 @@ module.exports = {
   prefix: "",
   theme: {
     container: {
-      center: "true",
+      center: true,
       padding: "1rem",
       screens: {
-        "xl": "1000px",
+        xl: "1000px",
         "2xl": "1400px",
       },
     },
     extend: {
       screens: {
-        "sm": { max: "767px" },
+        sm: { max: "767px" },
       },
       colors: {
         border: "hsl(var(--border))",
@@ -102,5 +104,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-};
+  plugins: [tailwindcssAnimate],
+} satisfies Config;

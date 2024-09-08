@@ -1,5 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import resolveConfig from "tailwindcss/resolveConfig";
+import tailwindConfig from "./tailwind.config.ts";
+const tailwind = resolveConfig(tailwindConfig);
+export type TailwindConfig = typeof tailwind;
+
 // import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
@@ -16,6 +21,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": "/src",
+      "~": "/",
       // react: "preact/compat",
       // "react-dom/test-utils": "preact/test-utils",
       // "react-dom": "preact/compat",
@@ -30,6 +36,7 @@ export default defineConfig({
     __GLOBALS__: {
       env: getEnv(),
       appVersion: process.env.npm_package_version,
+      tailwind,
     },
   },
 });

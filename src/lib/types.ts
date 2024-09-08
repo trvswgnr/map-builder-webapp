@@ -39,6 +39,7 @@ export type SaveData = {
 export type ChartData = {
   readonly type: string;
   readonly count: number;
+  readonly color: string;
 };
 
 export type Dimension = "columns" | "rows";
