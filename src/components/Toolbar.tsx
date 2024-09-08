@@ -15,6 +15,7 @@ import { Slider } from "@/components/Slider";
 import { MapTile } from "@/lib/types";
 import {
   activeClasses,
+  cn,
   createMapTile,
   EMPTY_TILE,
   getRandomColor,
@@ -112,10 +113,11 @@ export default function Toolbar() {
                 key={tile.id}
                 className="relative group"
               >
-                <button
-                  className={`border w-full h-12 bg-cover bg-center ${activeClasses(
-                    selectedTile === tile.id,
-                  )}`}
+                <Button
+                  className={cn`
+                    border w-full h-12 bg-cover bg-center
+                    ${activeClasses(selectedTile === tile.id)}
+                  `}
                   style={{
                     backgroundColor: tile.color,
                     borderColor:
@@ -138,7 +140,7 @@ export default function Toolbar() {
                   >
                     {tile.name}
                   </span>
-                </button>
+                </Button>
                 {tile.id !== EMPTY_TILE.id && (
                   <Popover
                     onOpenChange={(open) => {
@@ -147,6 +149,7 @@ export default function Toolbar() {
                   >
                     <PopoverTrigger asChild>
                       <Button
+                        tabIndex={-1}
                         size="icon"
                         variant="outline"
                         className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
