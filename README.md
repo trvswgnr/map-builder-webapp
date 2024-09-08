@@ -112,9 +112,7 @@ This project is licensed under the MIT License.
 
 ## Acknowledgements
 
-- [Vite](https://vitejs.dev/) for the build tooling
-- [shadcn/ui](https://ui.shadcn.com/) for the UI components
-- [Recharts](https://recharts.org/) for the charting library
-- [Lucide](https://lucide.dev/) for the icons
-- [React](https://reactjs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/) - super easy build tooling for SPAs
+- [shadcn/ui](https://ui.shadcn.com/) - nice, easy to customize components
+- [Recharts](https://recharts.org/) - charting library
+- [Lucide](https://lucide.dev/) - icons
