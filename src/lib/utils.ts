@@ -25,7 +25,7 @@ export function createMapTile(mapTile: Omit<MapTile, "id">): MapTile {
 }
 
 export const DEFAULT_TOOLBAR_TILES = [
-  createMapTile({ name: "empty", color: "transparent" }),
+  createMapTile({ name: "empty", color: "hsl(var(--map-background))" }),
   createMapTile({ name: "wall", color: "#000000" }),
   createMapTile({ name: "start", color: "#41e5e5" }),
   createMapTile({ name: "end", color: "#5cf671" }),
