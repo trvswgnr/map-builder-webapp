@@ -111,14 +111,14 @@ function EnvInfo(): React.ReactNode {
       : "bg-green-300 dark:bg-green-800";
   return (
     <>
-      <div
-        className={`${bgColor} py-0.5 px-1.5 border border text-xs text-foreground`}
+      <span
+        className={`${bgColor} block py-0.5 px-1.5 border border text-xs text-foreground`}
       >
         {env}
-      </div>
-      <div className="text-xs py-0.5 px-1.5 border border-l-0 border text-foreground bg-gray-200 dark:bg-gray-600">
+      </span>
+      <span className="block text-xs py-0.5 px-1.5 border border-l-0 border text-foreground bg-gray-200 dark:bg-gray-600">
         v{__APP_VERSION__}
-      </div>
+      </span>
     </>
   );
 }
