@@ -99,3 +99,19 @@ export class Recoverable extends Error {
 export function isRecoverable(value: unknown): value is Recoverable {
   return value instanceof Recoverable;
 }
+
+export function getTileAt(
+  layer: readonly MapTile[][],
+  row: number,
+  col: number,
+): MapTile | null {
+  if (
+    row >= 0 &&
+    row < layer.length &&
+    col >= 0 &&
+    col < (layer[0]?.length ?? -Infinity)
+  ) {
+    return layer[row]?.[col] ?? null;
+  }
+  return null;
+}

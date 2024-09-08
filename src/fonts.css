@@ -1,0 +1,15 @@
+@font-face {
+  font-family: "Comic Code";
+  src: url("comic-code-light.woff2") format("woff2"),
+    url("comic-code-light.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Comic Code";
+  src: url("comic-code-semibold.woff2") format("woff2"),
+    url("comic-code-semibold.woff") format("woff");
+  font-weight: bold;
+  font-style: normal;
+}

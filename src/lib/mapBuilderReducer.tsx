@@ -13,6 +13,7 @@ export interface MapBuilderState {
   layers: readonly MapLayer[];
   currentLayer: number;
   toolbarTiles: readonly MapTile[];
+  highlightedTile: string | null;
 }
 
 export enum MapBuilderAction {
@@ -58,6 +59,7 @@ export const initialState: MapBuilderState = {
   ],
   currentLayer: 0,
   toolbarTiles: DEFAULT_TOOLBAR_TILES,
+  highlightedTile: null,
 };
 
 // Reducer function

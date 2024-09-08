@@ -27,7 +27,20 @@ export default defineConfig({
   //   jsxFragment: "Fragment",
   // },
   define: {
-    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
-    __ENV__: JSON.stringify(process.env.NODE_ENV),
+    __GLOBALS__: {
+      env: getEnv(),
+      appVersion: process.env.npm_package_version,
+    },
   },
 });
+
+type Env = "prod" | "dev" | "unknown";
+function getEnv(): Env {
+  if (process.env.NODE_ENV === "production") {
+    return "prod";
+  }
+  if (process.env.NODE_ENV === "development") {
+    return "dev";
+  }
+  return "unknown";
+}

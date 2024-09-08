@@ -13,7 +13,8 @@ import { useMapBuilder } from "@/hooks/useMapBuilder";
 export default Editor;
 
 function Editor() {
-  const { layers, currentLayer, mapSize, dispatch } = useMapBuilder();
+  const { layers, currentLayer, mapSize, dispatch, highlightedTile } =
+    useMapBuilder();
   const [isDragging, setIsDragging] = useState(false);
   const [layerToDelete, setLayerToDelete] = useState<number | null>(null);
 
@@ -140,11 +141,13 @@ function Editor() {
                   row.map((tile, colIndex) => (
                     <EditorTile
                       key={`${layerIndex}-${rowIndex}-${colIndex}`}
+                      layer={layer}
                       layerIndex={layerIndex}
                       rowIndex={rowIndex}
                       colIndex={colIndex}
                       tile={tile}
                       currentLayer={currentLayer}
+                      highlightedTile={highlightedTile}
                       onMouseDown={handleEditorMouseDown}
                       onMouseEnter={handleEditorMouseEnter}
                       onMouseUp={handleEditorMouseUp}
@@ -170,11 +173,13 @@ function Editor() {
 }
 
 export type EditorTileProps = {
+  layer: readonly MapTile[][];
   layerIndex: number;
   rowIndex: number;
   colIndex: number;
   tile: MapTile;
   currentLayer: number;
+  highlightedTile: string | null;
   onMouseDown: (rowIndex: number, colIndex: number) => void;
   onMouseEnter: (rowIndex: number, colIndex: number) => void;
   onMouseUp: () => void;

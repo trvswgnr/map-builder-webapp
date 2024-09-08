@@ -2,30 +2,26 @@
 import { Toaster } from "@/components/ui/toaster";
 import Editor from "@/components/Editor";
 import Toolbar from "@/components/Toolbar";
-import Statistics from "@/components/Statistics";
-import TileDistribution from "@/components/TileDistribution";
+import Insights from "@/components/Insights";
 
 export default function MapBuilder() {
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center my-5 md:my-10">
         <h1 className="text-2xl md:text-3xl font-bold">Map Builder</h1>
-        <div className="flex items-center gap-6">
+        <div className="flex justify-between items-center gap-4 md:gap-6">
           <GithubLink />
           <XLink />
-          <p className="hidden md:flex items-center">
-            <EnvInfo />
-          </p>
+          <EnvInfo />
         </div>
       </div>
       <div className="flex flex-col md:grid md:grid-cols-3 gap-4">
         <div className="panel col-span-2">
           <Editor />
         </div>
-        <div className="panel">
+        <div className="panel flex flex-col gap-4">
           <Toolbar />
-          <Statistics />
-          <TileDistribution />
+          <Insights />
         </div>
       </div>
       <Footer />
@@ -96,37 +92,27 @@ function Footer(): React.ReactNode {
           View on GitHub
         </a>
       </p>
-      <p className="flex md:hidden items-center gap-2 mt-1">
-        <EnvInfo />
-      </p>
     </div>
   );
 }
 
 function EnvInfo(): React.ReactNode {
-  const env = getEnv();
   const bgColor =
-    env === "dev"
+    __GLOBALS__.env === "dev"
       ? "bg-orange-200 dark:bg-orange-800"
       : "bg-green-300 dark:bg-green-800";
   return (
     <>
-      <span
-        className={`${bgColor} block py-0.5 px-1.5 border border text-xs text-foreground`}
-      >
-        {env}
-      </span>
-      <span className="block text-xs py-0.5 px-1.5 border border-l-0 border text-foreground bg-gray-200 dark:bg-gray-600">
-        v{__APP_VERSION__}
+      <span className="flex md:hidden items-center">
+        <span
+          className={`${bgColor} block py-1 px-1.5 border text-xs text-foreground`}
+        >
+          {__GLOBALS__.env}
+        </span>
+        <span className="block text-xs py-1 px-1.5 border border-l-0  text-foreground bg-gray-200 dark:bg-gray-600">
+          v{__GLOBALS__.appVersion}
+        </span>
       </span>
     </>
   );
-}
-
-function getEnv(): string {
-  return __ENV__ === "production"
-    ? "prod"
-    : __ENV__ === "development"
-    ? "dev"
-    : "unknown";
 }

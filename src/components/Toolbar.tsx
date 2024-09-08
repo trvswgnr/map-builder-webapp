@@ -103,7 +103,7 @@ export default function Toolbar() {
   useSaveShortcut(handleSave);
 
   return (
-    <Card className="mb-4">
+    <Card>
       <CardHeader>
         <CardTitle className="text-xl">Toolbar</CardTitle>
       </CardHeader>
