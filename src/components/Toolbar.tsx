@@ -20,11 +20,11 @@ import {
   EMPTY_TILE,
   getRandomColor,
   getTileButtonTextColor,
-  TileType,
 } from "@/lib/utils";
 import { useErrorToast } from "@/hooks/useErrorToast";
 import { MapBuilderAction } from "@/lib/mapBuilderReducer";
 import { useMapBuilder } from "@/hooks/useMapBuilder";
+import useSaveShortcut from "@/hooks/useSaveShortcut";
 
 export default function Toolbar() {
   const errorToast = useErrorToast();
@@ -67,7 +67,7 @@ export default function Toolbar() {
     if (selectedTile === tileAtIndex.id) {
       dispatch({
         type: MapBuilderAction.SET_SELECTED_TILE,
-        payload: TileType.EMPTY,
+        payload: EMPTY_TILE.id,
       });
     }
   };
@@ -99,6 +99,8 @@ export default function Toolbar() {
     };
     reader.readAsDataURL(file);
   };
+
+  useSaveShortcut(handleSave);
 
   return (
     <Card className="mb-4">
@@ -320,7 +322,10 @@ export default function Toolbar() {
             />
           </div>
           <div className="space-x-2">
-            <Button onClick={handleSave}>
+            <Button
+              onClick={handleSave}
+              title="Save Map to File"
+            >
               <Save
                 width={16}
                 height={16}
@@ -331,6 +336,7 @@ export default function Toolbar() {
             <Button
               asChild
               className="cursor-pointer"
+              title="Load Map from File"
             >
               <label>
                 <FolderUpIcon

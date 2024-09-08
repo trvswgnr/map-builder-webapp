@@ -42,3 +42,6 @@ export type ChartData = {
 };
 
 export type Dimension = "columns" | "rows";
+
+declare const BRAND: unique symbol;
+export type Branded<T, B> = T & { [BRAND]: B };

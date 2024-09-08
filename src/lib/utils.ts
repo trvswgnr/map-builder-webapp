@@ -25,29 +25,20 @@ export function createMapTile(mapTile: Omit<MapTile, "id">): MapTile {
 }
 
 export const DEFAULT_TOOLBAR_TILES = [
-  createMapTile({ name: "empty", color: "hsl(var(--map-background))" }),
-  createMapTile({ name: "wall", color: "#000000" }),
-  createMapTile({ name: "start", color: "#41e5e5" }),
-  createMapTile({ name: "end", color: "#5cf671" }),
-  createMapTile({ name: "enemy", color: "#ef4444" }),
+  createMapTile({ name: "Empty", color: "hsl(var(--map-background))" }),
+  createMapTile({ name: "Wall", color: "#000000" }),
+  createMapTile({ name: "Player", color: "#41e5e5" }),
+  createMapTile({ name: "Enemy", color: "#ef4444" }),
 ] as const;
 
-export const [EMPTY_TILE] = DEFAULT_TOOLBAR_TILES;
-
-export enum TileType {
-  EMPTY = DEFAULT_TOOLBAR_TILES[0].id,
-  WALL = DEFAULT_TOOLBAR_TILES[1].id,
-  START = DEFAULT_TOOLBAR_TILES[2].id,
-  END = DEFAULT_TOOLBAR_TILES[3].id,
-  ENEMY = DEFAULT_TOOLBAR_TILES[4].id,
-}
+export const [EMPTY_TILE, WALL_TILE] = DEFAULT_TOOLBAR_TILES;
 
 export function getTileButtonTextColor(tile: MapTile): string {
   if (tile.texture) {
     return "text-white [text-shadow:_2px_2px_0px_rgb(0_0_0_/_0.8)]";
   }
 
-  if (tile.id === TileType.EMPTY) {
+  if (tile.id === EMPTY_TILE.id) {
     return "text-foreground";
   }
 

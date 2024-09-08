@@ -4,7 +4,7 @@ import {
   EMPTY_TILE,
   DEFAULT_TOOLBAR_TILES,
   NEVER,
-  TileType,
+  WALL_TILE,
 } from "@/lib/utils";
 
 export interface MapBuilderState {
@@ -50,7 +50,7 @@ export type ReducerActions =
 
 export const initialState: MapBuilderState = {
   mapSize: { columns: 10, rows: 10 },
-  selectedTile: TileType.WALL,
+  selectedTile: WALL_TILE.id,
   layers: [
     Array<MapTile[]>(10)
       .fill(NEVER)
