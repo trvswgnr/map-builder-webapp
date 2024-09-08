@@ -8,11 +8,14 @@ import TileDistribution from "@/components/TileDistribution";
 export default function MapBuilder() {
   return (
     <div className="container mx-auto">
-      <div className="flex justify-between items-center my-10">
-        <h1 className="sm:text-2xl md:text-3xl font-bold">Map Builder</h1>
+      <div className="flex justify-between items-center my-5 md:my-10">
+        <h1 className="text-2xl md:text-3xl font-bold">Map Builder</h1>
         <div className="flex items-center gap-6">
           <GithubLink />
           <XLink />
+          <p className="hidden md:flex items-center">
+            <EnvInfo />
+          </p>
         </div>
       </div>
       <div className="flex flex-col md:grid md:grid-cols-3 gap-4">
@@ -35,7 +38,7 @@ function GithubLink(): React.ReactNode {
   return (
     <a
       href="https://github.com/trvswgnr/map-builder-webapp"
-      className="block w-6 h-6 relative top-1 hover:opacity-80"
+      className="block w-6 h-6 relative hover:opacity-80"
     >
       <svg
         role="img"
@@ -54,7 +57,7 @@ function XLink(): React.ReactNode {
   return (
     <a
       href="https://x.com/techsavvytravvy"
-      className="block w-5 h-5 relative top-1 hover:opacity-80"
+      className="block w-5 h-5 relative hover:opacity-80"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -71,9 +74,9 @@ function XLink(): React.ReactNode {
 
 function Footer(): React.ReactNode {
   return (
-    <div className="text-sm text-muted-foreground mt-14 flex flex-col gap-3 mb-10">
+    <div className="pt-10 md:pt-14 border-t text-sm text-muted-foreground mt-10 mb-12 md:mt-14 md:mb-16 flex flex-col gap-4 md:gap-3">
       <p>
-        Made with ❤️ by{" "}
+        Made with 😡 by{" "}
         <a
           href="https://x.com/techsavvytravvy"
           target="_blank"
@@ -93,7 +96,37 @@ function Footer(): React.ReactNode {
           View on GitHub
         </a>
       </p>
-      <p>Version {__APP_VERSION__}</p>
+      <p className="flex md:hidden items-center gap-2 mt-1">
+        <EnvInfo />
+      </p>
     </div>
   );
+}
+
+function EnvInfo(): React.ReactNode {
+  const env = getEnv();
+  const bgColor =
+    env === "dev"
+      ? "bg-orange-200 dark:bg-orange-800"
+      : "bg-green-300 dark:bg-green-800";
+  return (
+    <>
+      <div
+        className={`${bgColor} py-0.5 px-1.5 border border text-xs text-foreground`}
+      >
+        {env}
+      </div>
+      <div className="text-xs py-0.5 px-1.5 border border-l-0 border text-foreground bg-gray-200 dark:bg-gray-600">
+        v{__APP_VERSION__}
+      </div>
+    </>
+  );
+}
+
+function getEnv(): string {
+  return __ENV__ === "production"
+    ? "prod"
+    : __ENV__ === "development"
+    ? "dev"
+    : "unknown";
 }

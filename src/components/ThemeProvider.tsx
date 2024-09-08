@@ -11,10 +11,12 @@ export default function ThemeProvider({
   children,
   defaultTheme,
   storageKey,
+  overrideTheme,
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+    overrideTheme ??
+      (() => (localStorage.getItem(storageKey) as Theme) || defaultTheme),
   );
 
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");

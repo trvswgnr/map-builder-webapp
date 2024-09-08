@@ -47,8 +47,8 @@ export function getTileButtonTextColor(tile: MapTile): string {
     return "text-white [text-shadow:_2px_2px_0px_rgb(0_0_0_/_0.8)]";
   }
 
-  if (tile.color === "transparent") {
-    return "text-black dark:text-white";
+  if (tile.id === TileType.EMPTY) {
+    return "text-foreground";
   }
 
   const hex = tile.color.replace("#", "");

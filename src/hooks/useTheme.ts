@@ -7,6 +7,7 @@ export type ResolvedTheme = "dark" | "light";
 export type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme: Theme;
+  overrideTheme?: ResolvedTheme;
   storageKey: string;
 };
 

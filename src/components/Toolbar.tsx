@@ -282,7 +282,7 @@ export default function Toolbar() {
             </Button>
           </div>
           <div>
-            <Label htmlFor="map-columns">Map Columns: {mapColumns}</Label>
+            <Label htmlFor="map-columns">Columns: {mapColumns}</Label>
             <Slider
               label="Adjust Map Columns"
               min={5}
@@ -302,7 +302,7 @@ export default function Toolbar() {
             />
           </div>
           <div>
-            <Label htmlFor="map-rows">Map Rows: {mapRows}</Label>{" "}
+            <Label htmlFor="map-rows">Rows: {mapRows}</Label>{" "}
             <Slider
               label="Adjust Map Rows"
               min={5}
