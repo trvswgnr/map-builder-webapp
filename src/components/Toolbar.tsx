@@ -112,6 +112,7 @@ export default function Toolbar() {
               <div
                 key={tile.id}
                 className="relative group"
+                aria-selected={selectedTile === tile.id}
               >
                 <Button
                   className={cn`
@@ -121,7 +122,9 @@ export default function Toolbar() {
                   style={{
                     backgroundColor: tile.color,
                     borderColor:
-                      tile.id === EMPTY_TILE.id ? "#eee" : tile.color,
+                      tile.id === EMPTY_TILE.id
+                        ? "hsl(var(--border))"
+                        : tile.color,
                     backgroundImage: tile.texture
                       ? `url(${tile.texture.data})`
                       : "none",
@@ -152,7 +155,10 @@ export default function Toolbar() {
                         tabIndex={-1}
                         size="icon"
                         variant="outline"
-                        className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className={cn`
+                          absolute -top-2 -right-2 w-6 h-6 p-0 transition-opacity
+                          opacity-0 group-hover:opacity-100 sm:group-aria-selected:opacity-100
+                        `}
                       >
                         <Edit className="h-3 w-3" />
                       </Button>

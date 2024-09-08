@@ -20,11 +20,14 @@ module.exports = {
       },
     },
     extend: {
+      screens: {
+        "sm": { max: "767px" },
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        focus: "hsl(var(--focus))",
+
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {

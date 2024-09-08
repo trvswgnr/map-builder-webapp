@@ -64,6 +64,7 @@ function Editor() {
             <div
               key={index}
               className="relative group"
+              aria-selected={currentLayer === index}
             >
               <Button
                 variant={currentLayer === index ? "secondary" : "outline"}
@@ -81,7 +82,11 @@ function Editor() {
                 <Button
                   size="icon"
                   variant="outline"
-                  className="absolute z-10 -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive text-destructive hover:text-white"
+                  className={`
+                    absolute z-10 -top-2 -right-2 w-6 h-6 p-0 transition-opacity
+                    opacity-0 group-hover:opacity-100 sm:group-aria-selected:opacity-100
+                    hover:bg-destructive text-destructive hover:text-white
+                  `}
                   onClick={() => openDeleteLayerModal(index)}
                 >
                   <Trash2 className="h-3 w-3" />
